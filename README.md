@@ -33,6 +33,8 @@ The specification (sanction measure, violence measure, lags, controls, robustnes
 [`Writing/main.pdf`](Writing/main.pdf); interpretation per script: [`empirics/notes/`](empirics/notes/README.md);
 exact equations and code: [`empirics/notes/model_equations.md`](empirics/notes/model_equations.md).*
 
+*Extension (separate project, started 9 Nov 2026): trade and arms exposure to the sender — [`exposure/README.md`](exposure/README.md).*
+
 Bivariate panel VAR(2) of **new GSDB sanction cases** and **UCDP organized violence**, state and year fixed effects,
 197 Gleditsch–Ward states, 1991–2019 (5,538 state-years; 174 states / 4,913 state-years with controls). Two
 specifications: *incidence* (new sanction 0/1, conflict year ≥ 25 deaths 0/1) and *levels* (number of new cases,

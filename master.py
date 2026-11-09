@@ -9,6 +9,7 @@ Usage (from the project folder):
     uv run python master.py --only clean_gsdb   # one step only
     uv run python master.py --skip-r            # skip R steps (reuse existing data/clean/base/base.csv)
     uv run python master.py --stage empirics    # empirics only: sample, descriptives, reaction functions
+    uv run python master.py --stage exposure    # exposure extension (trade/arms; exposure/README.md)
     uv run python master.py --only reaction_functions   # e.g. re-run Table 1 only
     uv run python master.py --list              # show the steps without running anything
 
@@ -29,6 +30,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent
 DATA_LOGS = ROOT / "data" / "logs"
 EMP_LOGS = ROOT / "empirics" / "results" / "logs"
+EXPOSURE_LOGS = ROOT / "exposure" / "results" / "logs"
 RSCRIPT = os.environ.get("RSCRIPT", "Rscript")
 
 # ---------------------------------------------------------------------------
@@ -66,7 +68,11 @@ STEPS = [
     ("empirics",   "conflict_sample_lp",         "empirics/scripts/14_conflict_sample_lp.R"),  # arms embargoes / conflict-objective sanctions, sample in conflict in t-1 (needs 01)
     ("empirics",   "specification_grid",         "empirics/scripts/15_specification_grid.R"),   # all combinations in empirics/specifications.R, UCDP/ACLED/GDELT (~min)
     ("empirics",   "specification_curve",        "empirics/scripts/16_specification_curve.R"),  # specification curves from the grid (needs 15)
+    ("empirics",   "acled_ucdp_comparison",      "empirics/scripts/17_acled_ucdp_comparison.R"), # descriptive: how ACLED and UCDP differ (coverage, agreement, events)
     ("empirics",   "writing_tables",            "Writing/scripts/make_tables.py"),             # LaTeX tables for Writing/main.tex from the CSV results
+    # exposure extension (added 2026-11-09; separate project, see exposure/README.md)
+    ("exposure",   "exposure_lp",                "exposure/scripts/01_exposure_lp.R"),          # LP: shock x pre-sanction exposure to the sender (needs 01)
+    ("exposure",   "exposure_robustness",        "exposure/scripts/02_exposure_robustness.R"),  # NA trade, ACLED, in-conflict sample, terciles (needs 01)
 ]
 DATA_STAGES = ["collection", "cleaning", "processing"]
 CHECK_SCRIPT = "data/scripts/checks/check_replication.py"
@@ -89,7 +95,7 @@ def command_for(script: str) -> list[str]:
 
 
 def run_step(stage: str, name: str, script: str, stamp: str, master_log) -> bool:
-    log_dir = EMP_LOGS if stage == "empirics" else DATA_LOGS
+    log_dir = {"empirics": EMP_LOGS, "exposure": EXPOSURE_LOGS}.get(stage, DATA_LOGS)
     log_dir.mkdir(parents=True, exist_ok=True)
     log_path = log_dir / f"{name}_{stamp}.log"
     cmd = command_for(script)
@@ -151,8 +157,8 @@ def snapshot_data() -> int:
 
 def main():
     ap = argparse.ArgumentParser(description="Run the sanctions & violence pipeline.")
-    ap.add_argument("--stage", choices=DATA_STAGES + ["empirics", "data", "all"], default="data",
-                    help="data = collection+cleaning+processing (default); all = data + empirics")
+    ap.add_argument("--stage", choices=DATA_STAGES + ["empirics", "exposure", "data", "all"], default="data",
+                    help="data = collection+cleaning+processing (default); all = data + empirics + exposure")
     ap.add_argument("--only", metavar="STEP", help="run a single step by name (see --list)")
     ap.add_argument("--skip-r", action="store_true", help="skip R steps")
     ap.add_argument("--check", action="store_true", help="afterwards, compare outputs with the frozen baseline (archive/baseline)")
@@ -175,7 +181,7 @@ def main():
         if not steps:
             sys.exit(f"unknown step {args.only!r}; use --list")
     else:
-        stages = {"data": DATA_STAGES, "all": DATA_STAGES + ["empirics"]}.get(args.stage, [args.stage])
+        stages = {"data": DATA_STAGES, "all": DATA_STAGES + ["empirics", "exposure"]}.get(args.stage, [args.stage])
         steps = [s for s in STEPS if s[0] in stages]
     if args.skip_r:
         steps = [s for s in steps if Path(s[2]).suffix not in (".R", ".Rmd")]

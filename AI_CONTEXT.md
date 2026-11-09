@@ -36,6 +36,9 @@ empirics/notes/              hand-written interpretation per script + tests_expl
 Writing/                     advisor brief / paper skeleton (see section 7)
 papers/                      PDFs + README.md (16 entries, priority A/B/C)
 archive/                     old notebooks, legacy outputs, baseline/ — move files here instead of deleting
+exposure/                    SEPARATE project (user, 9 Nov): trade/arms exposure analysis; own README, ANALYSIS_PLAN (E1–E3),
+                             scripts/ (00_setup.R reuses empirics setup, writes to exposure/results/), notes/; stage `--stage exposure`.
+                             Exposure variables stay in the main panel (option B).
 master.py                    runs everything; logs per step
 ```
 
