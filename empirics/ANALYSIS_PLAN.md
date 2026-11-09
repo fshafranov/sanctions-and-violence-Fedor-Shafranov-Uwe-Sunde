@@ -263,6 +263,8 @@ wanted.
 | D6 | GDELT incidence definition | above the state's own median of `gdelt_viol` | any `mass_violence` event; top quartile of the pooled distribution; levels only |
 | D7 | Conflict-prone subsample (6b) | (b) split-sample classification | (a) pre-1989 conflict history; (c) interaction |
 | D8 | Main specification with or without controls (section 8) | FE only; controls one at a time as robustness | lagged controls in the main specification |
+| D9 | Symmetry of the incidence specification: now sanction **onset** (`new_sanction`) vs conflict **presence** (`viol_inc`) | open — to discuss with the advisor | conflict onset (and termination) on the violence side; sanctions in force on the sanction side; keep and rename |
+| D10 | Which sanction events count | all new GSDB cases, any sender and objective, group cases once per member | conflict-objective cases only (`new_conflict_obj_sanction`); include extensions / joined cases |
 
 ## 10. Closest prior work and how this project differs (checked 2026-10-21)
 
@@ -319,3 +321,4 @@ re-analysis of JP).
 | 2026-10-23 | Script table updated (03/06/08 done; 09 parts listed); next steps agreed: same-sample control check (D8), leave-one-country-out, anticipation via objective split | end-of-session update |
 | 2026-10-23 | `ex_yugo_1991_2016` removed from `CONTROLS` (00_setup.R). Reason: with state FE it is identified only from 2017–19 in 7 ex-Yugoslav states (Yugoslavia/FRY itself: always 1, absorbed), all with zero new sanctions and zero conflict; it cannot handle the real issue, the attribution of one GSDB case to several successor states. Replaced by R9 in `09_robustness.R` part 5 (drop the ex-Yugoslav states; ex-Yugoslav states as one cluster). Changes all "with controls" results slightly (test run: S → V incidence 7.27, p = 0.026, unchanged; V → S incidence 6.22 instead of 6.11). | review of the controls |
 | 2026-10-23 | `09_robustness.R` part 4 (D8): same-sample control check — FE only, each control alone, sanction stock in t−1 vs t−3, all controls, on one common sample (4,888 obs., 174 states). | decision D8; stock in t−1 contains the tested sanction lags |
+| 2026-11-09 | Decisions D9 (onset vs presence in the incidence specification) and D10 (which sanction events count) added; D1 note: the 25-death threshold is applied to the country-year total of all organized violence, not per conflict as in UCDP. No code changed. Details: `empirics/notes/variable_coding_and_functions.md` | meeting preparation, review of the variable coding |

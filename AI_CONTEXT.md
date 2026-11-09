@@ -1,7 +1,9 @@
 # AI context: sanctions & violence project (handoff for the next session)
 
-Last updated **23 Oct 2026** (evening: controls revision, see section 8/10). Read this first, then:
-`empirics/notes/README.md` (headline findings + index of result notes), `empirics/ANALYSIS_PLAN.md` (design,
+Last updated **9 Nov 2026** (meeting preparation: variable coding review, no code or results changed; see
+section 9). Read this first, then:
+`empirics/notes/README.md` (headline findings + index of result notes),
+`empirics/notes/variable_coding_and_functions.md` (onset vs presence coding, the four functions, reading fig10), `empirics/ANALYSIS_PLAN.md` (design,
 decisions D1–D8, robustness list R1–R12, change log), `data/README.md` (all data decisions + change log),
 `papers/README.md` (literature notes), `Writing/README.md` (advisor brief).
 
@@ -131,6 +133,14 @@ from `../empirics/results/figures/`.
 
 ## 9. Open decisions
 
+- **D9 (new, 9 Nov)** incidence specification is asymmetric: sanction *onset* (`new_sanction`) vs conflict
+  *presence* (`viol_inc`, every war year = 1). Options: conflict onset/termination, sanctions in force, or rename.
+  Possibly why incidence results are weak and levels hold. To discuss with the advisor.
+- **D10 (new, 9 Nov)** which sanctions count (all new cases vs conflict objective; extensions; group cases).
+- **D1 caveat:** 25 deaths is the UCDP threshold, but applied to the country-year sum of all organized violence,
+  not per conflict.
+- Response functions (07): code compares with non-event years and does not scale; JP and the plan use the overall
+  mean and scale per fatality; JP show no leads. Align plan and code. Suggested variant: conflict onset as event.
 - **D8** main specification with or without controls (proposal: FE only main, controls as robustness) — needs the same-sample check below.
 - **D6** GDELT incidence definition (median split is weak; alternatives top quartile / any mass-violence event).
 - **D7** conflict-prone subsample. Whether LP-DiD (12) enters the paper (appendix / robustness / drop).
