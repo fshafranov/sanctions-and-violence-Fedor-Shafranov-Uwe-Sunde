@@ -1,0 +1,6 @@
+outs:
+- md5: 0795be42b699c216034d5f7f834d6f17.dir
+  size: 4898044
+  nfiles: 278
+  hash: md5
+  path: sipri

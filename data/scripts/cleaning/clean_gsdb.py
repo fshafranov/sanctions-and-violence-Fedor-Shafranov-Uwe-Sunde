@@ -205,6 +205,21 @@ for side in ["sanctioning", "sanctioned"]:
     if len(miss):
         print(miss.groupby(f"{side}_state_iso3")["year"].agg(["min", "max", "size"]).to_string())
 
+# ADDED 2026-11-09 (data/README.md, X1): sender-level file, one row per case x sender x target x year, from the
+# cleaned dyadic data (after all drop/recode/Yugoslavia rules). Used by process_exposure.py to measure the target's
+# trade and arms exposure to the actual senders of a case (group cases such as EU or UN appear as one row per member
+# state here). Does not change any other output.
+senders_out = panel[["case_id", "sanctioning_state_iso3", "sanctioning_gwcode", "sanctioned_state_iso3",
+                     "sanctioned_gwcode", "year"]].copy()
+senders_out["case"] = senders_out["case_id"].astype(str).str.split(",")
+senders_out = senders_out.explode("case")
+senders_out["case"] = senders_out["case"].str.strip().astype(int)
+senders_out["year"] = pd.to_datetime(senders_out["year"]).dt.year
+senders_out = (senders_out.drop(columns="case_id").drop_duplicates()
+               .sort_values(["sanctioned_state_iso3", "year", "case", "sanctioning_state_iso3"]))
+senders_out.to_csv(OUT / "gsdb_case_senders.csv", index=False)
+print("Wrote", OUT / "gsdb_case_senders.csv", senders_out.shape)
+
 # =====================================================================
 # STEP 5 — aggregate to country-year
 # =====================================================================

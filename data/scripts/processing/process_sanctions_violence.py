@@ -265,5 +265,13 @@ LEFTOVERS = ['country', 'country_id', 'region', 'govt_name',          # UCDP ide
              'Year', 'CountryCode', 'CountryName', 'iso3c_y']          # GDELT identifiers
 base_gdelt = base_gdelt.drop(columns=LEFTOVERS).rename(columns={'iso3c_x': 'iso3c'})
 
+# ADDED 2026-11-09 (data/README.md, section 4c, X1-X8): trade, FDI and arms exposure (process_exposure.py),
+# new columns only; exposure columns are NOT zero-filled here (see process_exposure.py for zeros vs missing).
+exposure = pd.read_csv(ROOT / "data" / "processed" / "exposure" / "exposure_cy.csv")
+exposure["year"] = pd.to_datetime(exposure["year"].astype(str), format="%Y")
+n_rows = len(base_gdelt)
+base_gdelt = base_gdelt.merge(exposure, on=["gwcode", "year"], how="left")
+assert len(base_gdelt) == n_rows
+
 base_gdelt.to_csv(OUT / 'sanctions_violence_panel.csv', index=False)
 print("Wrote", OUT / 'sanctions_violence_panel.csv', base_gdelt.shape)

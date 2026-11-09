@@ -211,7 +211,10 @@ Focus on **local projections** (the panel VAR seems to do worse in the panel set
 - **Weight by trade and capital flows**: raw data **downloaded 9 Nov** (`acquire_wdi.py` → `data/raw/wdi/`: trade/exports/
   imports % GDP, FDI % GDP, SIPRI arms imports/exports TIV, GDP current US$; `acquire_imf_trade.py` → `data/raw/imf_imts/`:
   IMF IMTS bilateral goods trade, all 272 reporter codes × all partners, 217 with data, 1980–2025, 129 MB; DVC-tracked).
-  Not cleaned or merged yet — coding choices (exposure year, own vs mirror flows, EU membership, goods only) open.
+  **Cleaned 9 Nov** (clean_wdi / clean_imf_trade / clean_sipri → data/clean/wdi, imf, sipri; SIPRI bilateral TIV + register too).
+  User decisions: data/README 4c T5, O1–O4 (decided). **Exposure in the panel (9 Nov):** `process_exposure.py` → 71 columns (incl. `trade_<g>_zero_imputed` flags for the NA robustness)
+  (`trade_<us|eu|un|senders>_gdp/_share`, `arms_<g>_tiv/_share`, `trade_gdp`, `fdi_in_gdp`, `arms_supplier_hhi`, `arms_to_rebels_tiv`;
+  base t−3..t−1 mean, `_l1`, `_t`); data/README 4c X1–X7. Not yet used in the empirics (next: option in specifications.R).
 - **Symbolic vs effective sanctions** — open; GSDB type flags/`descr_trade` and `success` are in `gsdb_new_cases.csv`.
 - **Arms data (SIPRI)** — open; SIPRI arms transfers (TIV) download by the user.
 

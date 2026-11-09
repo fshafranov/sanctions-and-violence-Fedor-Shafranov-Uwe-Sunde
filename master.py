@@ -44,6 +44,10 @@ STEPS = [
     ("cleaning",   "clean_gdelt",                "data/scripts/cleaning/clean_gdelt.py"),
     ("cleaning",   "clean_population",           "data/scripts/cleaning/clean_population.py"),
     ("cleaning",   "clean_gdp",                  "data/scripts/cleaning/clean_gdp.py"),
+    ("cleaning",   "clean_wdi",                  "data/scripts/cleaning/clean_wdi.py"),          # WDI trade/FDI/arms totals (added 2026-11-09)
+    ("cleaning",   "clean_imf_trade",            "data/scripts/cleaning/clean_imf_trade.py"),    # IMF bilateral goods trade, dyadic
+    ("cleaning",   "clean_sipri",                "data/scripts/cleaning/clean_sipri.py"),        # SIPRI arms transfers, dyadic + register
+    ("processing", "process_exposure",           "data/scripts/processing/process_exposure.py"),   # trade/arms exposure (added 2026-11-09)
     ("processing", "process_sanctions_violence", "data/scripts/processing/process_sanctions_violence.py"),
     # empirics (all scripts source 00_setup.R; estimation scripts also source functions.R)
     ("empirics",   "prepare_sample",             "empirics/scripts/01_prepare_sample.R"),       # variables, sample, exclusion log
@@ -125,7 +129,7 @@ def run_step(stage: str, name: str, script: str, stamp: str, master_log) -> bool
 # `master.py --dvc` records the current version of these paths and copies it to the DVC storage folder
 # (set per machine in .dvc/config.local). Then commit the changed *.dvc pointer files with git.
 DVC_TARGETS = ["data/clean", "data/processed", "empirics/results/data", "data/raw/acled", "data/raw/wdi",
-               "data/raw/imf_imts",
+               "data/raw/imf_imts", "data/raw/sipri",
                *sorted(str(p.relative_to(ROOT)) for p in (ROOT / "archive" / "baseline").glob("*.csv"))]
 
 
