@@ -1,0 +1,6 @@
+outs:
+- md5: 177aa54f911031ed7d64d52cff5dd1a6.dir
+  size: 5561936
+  nfiles: 10
+  hash: md5
+  path: wdi

@@ -124,7 +124,8 @@ def run_step(stage: str, name: str, script: str, stamp: str, master_log) -> bool
 # Data versions (added 2026-11-09): data files are not in git (public repo, ACLED terms) but versioned with DVC.
 # `master.py --dvc` records the current version of these paths and copies it to the DVC storage folder
 # (set per machine in .dvc/config.local). Then commit the changed *.dvc pointer files with git.
-DVC_TARGETS = ["data/clean", "data/processed", "empirics/results/data", "data/raw/acled",
+DVC_TARGETS = ["data/clean", "data/processed", "empirics/results/data", "data/raw/acled", "data/raw/wdi",
+               "data/raw/imf_imts",
                *sorted(str(p.relative_to(ROOT)) for p in (ROOT / "archive" / "baseline").glob("*.csv"))]
 
 

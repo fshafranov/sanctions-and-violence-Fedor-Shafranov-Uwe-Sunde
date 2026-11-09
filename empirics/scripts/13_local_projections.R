@@ -49,6 +49,10 @@
 # Output: empirics/results/tables/local_projections.csv, local_projections.md
 #         empirics/results/figures/fig18_lp_sanctions_to_violence.png, fig19_lp_violence_to_sanctions.png (UCDP)
 #         empirics/results/figures/fig20_lp_acled_sanctions_to_violence.png, fig21_lp_acled_violence_to_sanctions.png
+#         empirics/results/tables/lp_us_effect_location.md/.csv, figures/fig24_lp_us_effect_location.png (section 5:
+#         region / period / leave-one-country-out breakdown of the UCDP US effect)
+#         empirics/results/tables/lp_us_objective_split.md/.csv (section 6: US effect by sanction objective)
+#         empirics/results/figures/fig25_lp_us_paths_by_sample.png, tables/lp_us_paths_by_sample.csv (section 7: full paths)
 # =============================================================================
 
 source(here::here("empirics", "scripts", "00_setup.R"))
@@ -321,3 +325,271 @@ print(as.data.frame(results %>% filter(type == "cumulative", controls == "FE onl
                       pivot_wider(names_from = horizon, values_from = cell, names_prefix = "h=")),
       row.names = FALSE)
 cat("\nWrote", file.path(TABLES, "local_projections.md"), "\n")
+
+
+# =============================================================================
+# 5. Where does the UCDP US effect come from? (added 2026-11-09, after section G)
+#
+# The full-sample UCDP result (US cases without ICC, levels, shock second: lower log deaths at h = 2) is absent
+# on the ACLED state-years with both sources (section G). Here the full-sample UCDP estimate is taken apart:
+#   (a) leave out one GW region at a time, and each region alone (if >= 5 shock years)
+#   (b) shock-year period interaction: separate beta for shocks in 1991-99, 2000-09, 2010-19
+#   (c) leave one country out (every state with a US shock), and dropping the k most influential states together
+#       (k = 1..5; ranked by the single-drop shift; an adversarial check, fragile by construction)
+#   (d) the shock events of the most influential states, with log deaths t-2 .. t+3
+# Outcomes: per-year y(t+2) and cumulative y(t..t+3), FE only, shock second.
+# Output: tables/lp_us_effect_location.md/.csv, figures/fig24_lp_us_effect_location.png
+# =============================================================================
+gw_region <- function(code) cut(code, c(0, 199, 399, 626, 699, 999),
+                                labels = c("Americas", "Europe", "Africa", "Middle East", "Asia and Oceania"))
+LOC_SHOCK <- "n_new_us_no_icc"; LOC_RESPONSE <- "viol_lev"
+LOC_OUTCOMES <- c(per_year_h2 = "Per year, h = 2", cumulative_h3 = "Cumulative, h = 0..3")
+TOP_K <- 5
+
+loc_data <- add_lags(analysis, c(LOC_SHOCK, LOC_RESPONSE), VAR_LAGS) %>%
+  mutate(region = gw_region(gwcode),
+         period = cut(yr, c(-Inf, 1999, 2009, Inf), labels = c("1991-99", "2000-09", "2010-19")))
+loc_data$per_year_h2   <- value_at(loc_data, LOC_RESPONSE, 2)
+loc_data$cumulative_h3 <- cumulative_to(loc_data, LOC_RESPONSE, 3)
+for (p in levels(loc_data$period)) loc_data[[paste0("shock_", sub("-", "_", p))]] <- loc_data[[LOC_SHOCK]] * (loc_data$period == p)
+loc_history <- c(lag_names(LOC_SHOCK, VAR_LAGS), lag_names(LOC_RESPONSE, VAR_LAGS), LOC_RESPONSE)  # shock second
+
+loc_fit <- function(data, outcome, shock_terms = LOC_SHOCK) {
+  sample_used <- data %>% filter(in_window) %>% drop_na(all_of(c(outcome, LOC_SHOCK, loc_history)))
+  fit <- feols(as.formula(paste(outcome, "~", paste(c(shock_terms, loc_history), collapse = " + "), "| gwcode + yr")),
+               data = sample_used, cluster = ~ gwcode)
+  ct <- coeftable(fit)
+  tibble(term = shock_terms, estimate = ct[shock_terms, 1], se = ct[shock_terms, 2],
+         p_value = ct[shock_terms, 4], observations = nobs(fit),
+         shock_years = sapply(shock_terms, function(t) sum(sample_used[[t]] > 0)))
+}
+
+shock_states <- loc_data %>% filter(in_window, .data[[LOC_SHOCK]] > 0) %>% distinct(gwcode, gw_name)
+location <- list()
+for (outcome in names(LOC_OUTCOMES)) {
+  add <- function(rows, group, sample) location[[length(location) + 1]] <<-
+    mutate(rows, outcome = outcome, group = group, sample = sample, .before = 1)
+  add(loc_fit(loc_data, outcome), "Full sample", "All states, 1991-2019")
+  for (r in levels(loc_data$region)) {
+    add(loc_fit(filter(loc_data, region != r), outcome), "Without one region", paste("Without", r))
+    only <- filter(loc_data, region == r)
+    if (sum(only[[LOC_SHOCK]][only$in_window] > 0) >= 5) add(loc_fit(only, outcome), "One region only", paste(r, "only"))
+  }
+  periods <- loc_fit(loc_data, outcome, paste0("shock_", sub("-", "_", levels(loc_data$period))))
+  for (i in seq_len(nrow(periods))) add(periods[i, ], "Shock-year period", paste("Shocks", levels(loc_data$period)[i]))
+  for (i in seq_len(nrow(shock_states)))
+    add(loc_fit(filter(loc_data, gwcode != shock_states$gwcode[i]), outcome), "Leave one country out",
+        paste("Without", shock_states$gw_name[i]))
+}
+location <- bind_rows(location)
+
+# (c) drop the k most influential states together (ranked by the single-drop estimate, cumulative outcome)
+influential <- location %>% filter(group == "Leave one country out", outcome == "cumulative_h3") %>%
+  arrange(desc(estimate)) %>% mutate(state = sub("^Without ", "", sample)) %>% pull(state)
+top_drop <- list()
+for (outcome in names(LOC_OUTCOMES)) for (k in 1:TOP_K) {
+  dropped <- shock_states$gwcode[shock_states$gw_name %in% influential[1:k]]
+  top_drop[[length(top_drop) + 1]] <- loc_fit(filter(loc_data, !gwcode %in% dropped), outcome) %>%
+    mutate(outcome = outcome, group = "Drop the k most influential states",
+           sample = paste0("k = ", k, " (", paste(influential[1:k], collapse = ", "), ")"), .before = 1)
+}
+location <- bind_rows(location, top_drop) %>% mutate(outcome_label = LOC_OUTCOMES[outcome])
+write_csv(location, file.path(TABLES, "lp_us_effect_location.csv"))
+
+# (d) shock events in the most influential states
+events <- loc_data %>%
+  mutate(`t-2` = lag_by_year(loc_data, LOC_RESPONSE, 2), `t-1` = lag_by_year(loc_data, LOC_RESPONSE, 1),
+         t = .data[[LOC_RESPONSE]], `t+1` = value_at(loc_data, LOC_RESPONSE, 1), `t+2` = per_year_h2,
+         `t+3` = value_at(loc_data, LOC_RESPONSE, 3)) %>%
+  filter(in_window, .data[[LOC_SHOCK]] > 0, gw_name %in% influential[1:TOP_K]) %>%
+  mutate(yr = as.integer(yr)) %>%
+  select(state = gw_name, year = yr, new_us_cases = all_of(LOC_SHOCK), `t-2`, `t-1`, t, `t+1`, `t+2`, `t+3`) %>%
+  mutate(across(where(is.double), ~ sprintf("%.2f", .x)))
+
+# Figure: dot-and-whisker, one row per sample variant, facets by outcome (leave-one-country-out shown as its range)
+plot_location <- location %>% filter(group != "Leave one country out") %>%
+  mutate(group = factor(group, levels = c("Full sample", "Without one region", "One region only", "Shock-year period",
+                                          "Drop the k most influential states")),
+         sample = sub(" \\(.*", "", sample),
+         sample = factor(sample, levels = rev(unique(sample))),
+         lower = estimate - 1.96 * se, upper = estimate + 1.96 * se,
+         outcome_label = factor(outcome_label, levels = LOC_OUTCOMES))
+loco_range <- location %>% filter(group == "Leave one country out") %>% group_by(outcome_label) %>%
+  summarise(lowest = min(estimate), highest = max(estimate), .groups = "drop") %>%
+  mutate(outcome_label = factor(outcome_label, levels = LOC_OUTCOMES))
+fig24 <- ggplot(plot_location, aes(estimate, sample)) +
+  geom_rect(data = loco_range, aes(xmin = lowest, xmax = highest, ymin = -Inf, ymax = Inf), inherit.aes = FALSE,
+            fill = PAPER_COLOURS[["blue"]], alpha = 0.10) +
+  geom_vline(xintercept = 0, colour = "#52514e", linewidth = 0.3) +
+  geom_errorbarh(aes(xmin = lower, xmax = upper), height = 0, colour = PAPER_COLOURS[["blue"]]) +
+  geom_point(colour = PAPER_COLOURS[["blue"]], size = 1.6) +
+  facet_grid(group ~ outcome_label, scales = "free", space = "free_y") +
+  labs(title = "Where does the UCDP response to US sanctions come from?",
+       x = "Response of log(1 + deaths per 100k) to one new US case (without ICC case 685)", y = NULL,
+       caption = paste0("Panel local projections, shock second, state and year FE, ", VAR_LAGS,
+                        " lags; 95% intervals, SE clustered by state. Shaded band: range of the ",
+                        n_distinct(shock_states$gwcode), " leave-one-country-out estimates.\n",
+                        "Drop k: the k states whose single removal moves the cumulative estimate most towards zero, ",
+                        "removed together (", paste(influential[1:TOP_K], collapse = ", "), ").")) +
+  theme_paper() + theme(strip.text.y = element_text(angle = 0, hjust = 0))
+save_figure(fig24, "fig24_lp_us_effect_location.png", 11, 8)
+
+location_cell <- function(rows) rows %>% mutate(cell = format_cell(estimate, se, p_value)) %>%
+  select(group, sample, outcome_label, cell, shock_years) %>%
+  pivot_wider(names_from = outcome_label, values_from = c(cell, shock_years))
+loco_summary <- location %>% filter(group == "Leave one country out") %>% group_by(outcome_label) %>%
+  summarise(states_dropped = n(), lowest = sprintf("%.3f", min(estimate)), highest = sprintf("%.3f", max(estimate)),
+            share_p_below_0.05 = sprintf("%.2f", mean(p_value < 0.05)), .groups = "drop")
+writeLines(c(
+  "# Where does the UCDP response to US sanctions come from?", "",
+  paste0("Generated by `empirics/scripts/13_local_projections.R` (section 5) on ", format(Sys.time(), "%Y-%m-%d %H:%M"),
+         ". Figure `fig24_lp_us_effect_location.png`; all estimates `lp_us_effect_location.csv`."), "",
+  "Shock: number of new US cases without ICC case 685; response: log(1 + UCDP deaths per 100k); shock second, ",
+  "state and year FE, 2 lags of both. Cells: coefficient (SE); shock_years = state-years with a shock in the sample.", "",
+  "## Regions, periods, most influential states", "",
+  to_markdown(location_cell(filter(location, group != "Leave one country out"))),
+  "## Leave one country out (each state with a US shock dropped once)", "",
+  to_markdown(loco_summary),
+  "Most influential single states (cumulative outcome, estimate closest to zero first):", "",
+  to_markdown(location %>% filter(group == "Leave one country out", outcome == "cumulative_h3") %>%
+                arrange(desc(estimate)) %>% head(10) %>% mutate(cell = format_cell(estimate, se, p_value)) %>%
+                select(sample, cell)),
+  "## US shock events in the five most influential states: log(1 + deaths per 100k) around the shock", "",
+  to_markdown(events),
+  "*Notes:* * p<0.1, ** p<0.05, *** p<0.01. Period = year of the shock; cumulative outcome needs t+3 <= 2019."
+), file.path(TABLES, "lp_us_effect_location.md"))
+cat("\nWrote", file.path(TABLES, "lp_us_effect_location.md"), "\n")
+
+
+# =============================================================================
+# 6. Objective split of the US effect (anticipation check; added 2026-11-09)
+#
+# If senders impose measures when a war's end is expected (or as part of a settlement), the deaths decline after US
+# cases should be concentrated in cases whose stated objective is the war itself. Split of the US cases without ICC
+# into (i) conflict objective (end_war, prevent_war, territorial_conflict; any mention, as in 14 and
+# specifications.R) and (ii) all other objectives; both counts and their lags enter one regression.
+# Two samples: all state-years, and state-years in conflict in t-1 (wars compared with wars, as in 14).
+# Also reported: end_war mention alone vs everything else.
+# Caveat: the objective split cannot separate "the sanction ended the war" from "the war was ending anyway"; a
+# concentration in conflict-objective cases is what both stories predict. A decline after NON-conflict cases is
+# harder to explain by anticipated war ends.
+# Output: tables/lp_us_objective_split.md/.csv
+# =============================================================================
+CONFLICT_OBJECTIVES <- c("end_war", "prevent_war", "territorial_conflict")
+objective_counts <- new_cases %>%
+  filter(us == 1, case != ICC_CASE) %>%
+  mutate(objectives = str_split(objective, ",\\s*"),
+         conflict_obj = map_lgl(objectives, ~ any(.x %in% CONFLICT_OBJECTIVES)),
+         end_war = map_lgl(objectives, ~ "end_war" %in% .x)) %>%
+  group_by(iso3c = country_iso3, yr = year) %>%
+  summarise(us_conflict_obj = sum(conflict_obj), us_other_obj = sum(!conflict_obj),
+            us_end_war = sum(end_war), us_not_end_war = sum(!end_war), .groups = "drop")
+obj_data <- analysis %>% left_join(objective_counts, by = c("iso3c", "yr")) %>%
+  mutate(across(starts_with("us_"), ~ replace_na(.x, 0L))) %>% arrange(gwcode, yr)
+stopifnot(all(obj_data$us_conflict_obj + obj_data$us_other_obj == obj_data$n_new_us_no_icc))
+obj_data$conflict_l1 <- lag_by_year(obj_data, "viol_inc", 1)
+
+SPLITS <- list("Conflict objective vs other" = c("us_conflict_obj", "us_other_obj"),
+               "End war mentioned vs other"  = c("us_end_war", "us_not_end_war"))
+OBJ_SAMPLES <- c("All state-years" = "all", "In conflict in t-1" = "war")
+objective_rows <- list()
+for (split_name in names(SPLITS)) for (sample_name in names(OBJ_SAMPLES)) for (outcome in names(LOC_OUTCOMES)) {
+  shocks <- SPLITS[[split_name]]
+  d <- add_lags(obj_data, c(shocks, LOC_RESPONSE), VAR_LAGS)
+  d$per_year_h2 <- value_at(d, LOC_RESPONSE, 2); d$cumulative_h3 <- cumulative_to(d, LOC_RESPONSE, 3)
+  history <- c(unlist(lapply(shocks, lag_names, VAR_LAGS)), lag_names(LOC_RESPONSE, VAR_LAGS), LOC_RESPONSE)
+  sample_used <- d %>% filter(in_window, OBJ_SAMPLES[[sample_name]] == "all" | conflict_l1 %in% 1) %>%
+    drop_na(all_of(c(outcome, shocks, history)))
+  fit <- feols(as.formula(paste(outcome, "~", paste(c(shocks, history), collapse = " + "), "| gwcode + yr")),
+               data = sample_used, cluster = ~ gwcode)
+  ct <- coeftable(fit)
+  diff_test <- {   # p-value of H0: both objective groups have the same coefficient
+    v <- vcov(fit)[shocks, shocks]; b <- coef(fit)[shocks]
+    z <- unname((b[1] - b[2]) / sqrt(v[1, 1] + v[2, 2] - 2 * v[1, 2])); 2 * pnorm(-abs(z))
+  }
+  objective_rows[[length(objective_rows) + 1]] <- tibble(
+    split = split_name, sample = sample_name, outcome = outcome, outcome_label = LOC_OUTCOMES[[outcome]],
+    shock = shocks, estimate = ct[shocks, 1], se = ct[shocks, 2], p_value = ct[shocks, 4],
+    p_equal = diff_test, shock_years = sapply(shocks, function(s) sum(sample_used[[s]] > 0)),
+    observations = nobs(fit), states = n_distinct(sample_used$gwcode))
+}
+objective_results <- bind_rows(objective_rows)
+write_csv(objective_results, file.path(TABLES, "lp_us_objective_split.csv"))
+
+SHOCK_LABELS <- c(us_conflict_obj = "Conflict objective", us_other_obj = "Other objectives",
+                  us_end_war = "End war mentioned", us_not_end_war = "End war not mentioned")
+writeLines(c(
+  "# US effect by sanction objective (anticipation check)", "",
+  paste0("Generated by `empirics/scripts/13_local_projections.R` (section 6) on ", format(Sys.time(), "%Y-%m-%d %H:%M"),
+         ". All estimates: `lp_us_objective_split.csv`."), "",
+  "US cases without ICC case 685, split by GSDB objective; both parts and their lags in one regression; response ",
+  "log(1 + UCDP deaths per 100k); shock second, state and year FE. Conflict objective = end_war, prevent_war or ",
+  "territorial_conflict mentioned. p(equal) = test that the two coefficients are equal. Cells: coefficient (SE) [shock years].", "",
+  to_markdown(objective_results %>%
+                mutate(cell = paste0(format_cell(estimate, se, p_value), " [", shock_years, "]"),
+                       shock = SHOCK_LABELS[shock], p_equal = sprintf("%.2f", p_equal)) %>%
+                select(split, sample, outcome = outcome_label, shock, cell, p_equal) %>%
+                pivot_wider(names_from = outcome, values_from = c(cell, p_equal))),
+  "*Notes:* * p<0.1, ** p<0.05, *** p<0.01. In-conflict sample: UCDP >= 25 deaths in t-1."
+), file.path(TABLES, "lp_us_objective_split.md"))
+cat("\nWrote", file.path(TABLES, "lp_us_objective_split.md"), "\n")
+
+
+# =============================================================================
+# 7. Full horizon paths for the section-5/6 samples (added 2026-11-09, user request)
+#
+# Sections 5 and 6 summarise each sample by h = 2 and the cumulative h = 0..3 only. Here the whole path h = 1..8
+# (per year and cumulative) for: full sample; shock-year periods (one regression with period-specific shocks);
+# without the five most influential states (section 5); state-years in conflict in t-1.
+# Same specification: US cases without ICC, log(1 + UCDP deaths per 100k), shock second, state and year FE.
+# Output: figures/fig25_lp_us_paths_by_sample.png, tables/lp_us_paths_by_sample.csv
+# =============================================================================
+path_data <- loc_data %>% left_join(obj_data %>% select(gwcode, yr, conflict_l1), by = c("gwcode", "yr"))
+top_dropped <- shock_states$gwcode[shock_states$gw_name %in% influential[1:TOP_K]]
+PERIOD_SHOCKS <- paste0("shock_", sub("-", "_", levels(loc_data$period)))
+PATH_SAMPLES <- list(
+  list(label = "Full sample",                  filter = function(d) d,                                shocks = LOC_SHOCK),
+  list(label = "By shock period",              filter = function(d) d,                                shocks = PERIOD_SHOCKS),
+  list(label = "Without the 5 most\ninfluential states", filter = function(d) filter(d, !gwcode %in% top_dropped), shocks = LOC_SHOCK),
+  list(label = "In conflict in t-1",           filter = function(d) filter(d, conflict_l1 %in% 1),   shocks = LOC_SHOCK))
+SHOCK_NAMES <- c(setNames(c("1991-99", "2000-09", "2010-19"), PERIOD_SHOCKS), setNames("All years", LOC_SHOCK))
+
+path_rows <- list()
+for (s in PATH_SAMPLES) for (cumulative in c(FALSE, TRUE)) for (h in 1:HORIZON) {
+  d <- path_data
+  d$lp_outcome <- if (cumulative) cumulative_to(d, LOC_RESPONSE, h) else value_at(d, LOC_RESPONSE, h)
+  sample_used <- s$filter(d) %>% filter(in_window) %>% drop_na(all_of(c("lp_outcome", LOC_SHOCK, loc_history)))
+  fit <- feols(as.formula(paste("lp_outcome ~", paste(c(s$shocks, loc_history), collapse = " + "), "| gwcode + yr")),
+               data = sample_used, cluster = ~ gwcode)
+  ct <- coeftable(fit)
+  path_rows[[length(path_rows) + 1]] <- tibble(
+    sample = s$label, shock = SHOCK_NAMES[s$shocks], type = if (cumulative) "Cumulative, h = 0..h" else "Per year, t + h",
+    horizon = h, estimate = ct[s$shocks, 1], se = ct[s$shocks, 2], p_value = ct[s$shocks, 4],
+    shock_years = sapply(s$shocks, function(x) sum(sample_used[[x]] > 0)), observations = nobs(fit))
+}
+paths <- bind_rows(path_rows) %>%
+  mutate(lower = estimate - 1.96 * se, upper = estimate + 1.96 * se,
+         sample = factor(sample, levels = sapply(PATH_SAMPLES, `[[`, "label")),
+         type = factor(type, levels = c("Per year, t + h", "Cumulative, h = 0..h")),
+         shock = factor(shock, levels = c("All years", "1991-99", "2000-09", "2010-19")))
+write_csv(paths, file.path(TABLES, "lp_us_paths_by_sample.csv"))
+
+path_colours <- c("All years" = "#52514e", "1991-99" = PAPER_COLOURS[["blue"]],
+                  "2000-09" = PAPER_COLOURS[["orange"]], "2010-19" = PAPER_COLOURS[["aqua"]])
+fig25 <- ggplot(paths, aes(horizon, estimate, colour = shock, fill = shock)) +
+  geom_hline(yintercept = 0, colour = "#52514e", linewidth = 0.3) +
+  geom_ribbon(aes(ymin = lower, ymax = upper), alpha = 0.12, colour = NA) +
+  geom_line(linewidth = 0.7) + geom_point(size = 1) +
+  facet_wrap(type ~ sample, nrow = 2, scales = "free_y", labeller = label_wrap_gen(multi_line = TRUE)) +   # own y-scale per panel: the wide 2010s band would flatten the rest
+  scale_colour_manual(values = path_colours) + scale_fill_manual(values = path_colours) +
+  scale_x_continuous(breaks = 1:HORIZON) +
+  labs(title = "Deaths after a new US sanction, years 1 to 8, by sample",
+       x = "Years after the sanction (h)", y = "Response of log(1 + UCDP deaths per 100k)", colour = "Shock years",
+       fill = "Shock years",
+       caption = paste0("Panel local projections, one regression per horizon: US cases without ICC case 685; shock second ",
+                        "(deaths in t controlled), ", VAR_LAGS, " lags of both, state and year FE; 95% bands, SE clustered by state.\n",
+                        "By shock period: one regression with separate coefficients for shocks in each period. ",
+                        "Five most influential states: ", paste(influential[1:TOP_K], collapse = ", "),
+                        ". Samples shrink with h (outcomes end 2019). Y-scales differ between panels.")) +
+  theme_paper()
+save_figure(fig25, "fig25_lp_us_paths_by_sample.png", 13, 7)

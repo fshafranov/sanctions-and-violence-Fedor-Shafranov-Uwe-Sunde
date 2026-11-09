@@ -174,6 +174,12 @@ Focus on **local projections** (the panel VAR seems to do worse in the panel set
   1997–2023). Result: no sanction → violence reduction with ACLED; **UCDP on the same state-years agrees** → the
   negative UCDP US effect comes from state-years outside Africa/Asia 1997–2023. Next: locate it (region/period splits,
   leave-one-country-out). Panel changed (new columns only) → user to run `--set-baseline`.
+  **Located (13 section 5, 9 Nov):** not regional; shocks 1991–99 −0.21, 2000–09 −0.11, 2010–19 +0.02 (n.s.);
+  leave-one-country-out always p < 0.05, but dropping Yugoslavia, Iraq, Nepal, Angola, Liberia halves it (−0.049, p 0.08);
+  influential events sit at war ends → anticipation concern. **Objective split (13 section 6):** decline after conflict-
+  objective US cases (−0.15*, in wars −0.28**) and also after other-objective cases (−0.09**, in wars −0.24***), difference
+  n.s. → not just settlement packages, but anticipation in general not ruled out (user: leave-outs may be the cases where
+  sanctions worked; counterfactual not identified). Ideas: UCDP peace agreement / termination data, monthly timing, case reading.
 - **Arms embargoes / conflict-aimed sanctions** — **done 9 Nov** (script 14, design agreed with the user): among wars
   with the same violence history, arms embargoes are followed by lower deaths at h = 2–3 (−0.20 to −0.25 log points,
   both FE versions), no effect on whether the war continues. Arms-only too few (28). Next checks: ACLED, UN vs non-UN,
@@ -202,8 +208,10 @@ Focus on **local projections** (the panel VAR seems to do worse in the panel set
   LPs 1989–2005. Needs download by the user. Details: data/README.md, "Notes on GSDB coverage".
 - **Retaliation** — open, meaning to clarify (target counter-sanctions vs violent retaliation).
 - **"Net out symmetric vs asymmetric"** — open, meaning to clarify (imposition vs lifting? multilateral vs unilateral?).
-- **Weight by trade and capital flows**: (exports + imports)/GDP as exposure weight — open; needs data (WDI trade % GDP,
-  or bilateral trade with the US/sender, IMF DOTS / CEPII).
+- **Weight by trade and capital flows**: raw data **downloaded 9 Nov** (`acquire_wdi.py` → `data/raw/wdi/`: trade/exports/
+  imports % GDP, FDI % GDP, SIPRI arms imports/exports TIV, GDP current US$; `acquire_imf_trade.py` → `data/raw/imf_imts/`:
+  IMF IMTS bilateral goods trade, all 272 reporter codes × all partners, 217 with data, 1980–2025, 129 MB; DVC-tracked).
+  Not cleaned or merged yet — coding choices (exposure year, own vs mirror flows, EU membership, goods only) open.
 - **Symbolic vs effective sanctions** — open; GSDB type flags/`descr_trade` and `success` are in `gsdb_new_cases.csv`.
 - **Arms data (SIPRI)** — open; SIPRI arms transfers (TIV) download by the user.
 

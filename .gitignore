@@ -32,6 +32,8 @@ data/raw/states/
 data/raw/ucdp_ov/
 data/raw/ucdp_prio/
 data/raw/ties/
+data/raw/wdi/
+data/raw/imf_imts/
 data/logs/
 empirics/results/logs/
 

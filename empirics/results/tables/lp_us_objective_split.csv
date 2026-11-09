@@ -1,0 +1,17 @@
+split,sample,outcome,outcome_label,shock,estimate,se,p_value,p_equal,shock_years,observations,states
+Conflict objective vs other,All state-years,per_year_h2,"Per year, h = 2",us_conflict_obj,-0.14468910513932393,0.07476327537492432,0.054392924794047975,0.5066710526184512,42,5144,197
+Conflict objective vs other,All state-years,per_year_h2,"Per year, h = 2",us_other_obj,-0.08993635393701174,0.0436246186345618,0.0405658425324365,0.5066710526184512,142,5144,197
+Conflict objective vs other,All state-years,cumulative_h3,"Cumulative, h = 0..3",us_conflict_obj,-0.37354850297561826,0.18652532269887706,0.046590873134995235,0.3501297204882351,41,4947,197
+Conflict objective vs other,All state-years,cumulative_h3,"Cumulative, h = 0..3",us_other_obj,-0.15703571441980946,0.10151504856673008,0.12349551448600041,0.3501297204882351,124,4947,197
+Conflict objective vs other,In conflict in t-1,per_year_h2,"Per year, h = 2",us_conflict_obj,-0.2766835302937166,0.11689957092673545,0.020297219778933867,0.7530074816226862,23,1026,104
+Conflict objective vs other,In conflict in t-1,per_year_h2,"Per year, h = 2",us_other_obj,-0.2363195346002361,0.06690148869884605,6.793476115299712e-4,0.7530074816226862,62,1026,104
+Conflict objective vs other,In conflict in t-1,cumulative_h3,"Cumulative, h = 0..3",us_conflict_obj,-0.7061468745037636,0.29397726218534886,0.018651228284974494,0.6628214602636215,23,976,103
+Conflict objective vs other,In conflict in t-1,cumulative_h3,"Cumulative, h = 0..3",us_other_obj,-0.551774628915064,0.16747708471239448,0.0014767922064403013,0.6628214602636215,49,976,103
+End war mentioned vs other,All state-years,per_year_h2,"Per year, h = 2",us_end_war,-0.22025087566005289,0.09996570603730744,0.02874131473010991,0.18202941560465924,20,5144,197
+End war mentioned vs other,All state-years,per_year_h2,"Per year, h = 2",us_not_end_war,-0.08417530477750755,0.03904436309809412,0.03231092751599342,0.18202941560465924,164,5144,197
+End war mentioned vs other,All state-years,cumulative_h3,"Cumulative, h = 0..3",us_end_war,-0.5011968661962152,0.2518311229848505,0.04795761650849045,0.22074525154565788,20,4947,197
+End war mentioned vs other,All state-years,cumulative_h3,"Cumulative, h = 0..3",us_not_end_war,-0.15871741412805385,0.08953263760141753,0.07782630825724539,0.22074525154565788,145,4947,197
+End war mentioned vs other,In conflict in t-1,per_year_h2,"Per year, h = 2",us_end_war,-0.27718510684324704,0.12993011452377962,0.03588576882407359,0.7534613407223071,15,1026,104
+End war mentioned vs other,In conflict in t-1,per_year_h2,"Per year, h = 2",us_not_end_war,-0.2380151042149633,0.05929423166827187,1.3130187687017763e-4,0.7534613407223071,70,1026,104
+End war mentioned vs other,In conflict in t-1,cumulative_h3,"Cumulative, h = 0..3",us_end_war,-0.7627181568864283,0.33683537837453065,0.026293001927229876,0.5345719296247698,15,976,103
+End war mentioned vs other,In conflict in t-1,cumulative_h3,"Cumulative, h = 0..3",us_not_end_war,-0.5452590389157451,0.1426394319625859,2.6199731055419557e-4,0.5345719296247698,57,976,103
