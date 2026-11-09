@@ -1,7 +1,9 @@
 # AI context: sanctions & violence project (handoff for the next session)
 
-Last updated **9 Nov 2026, after the advisor meeting**: new plain local projections (script 13), advisor's to-do
-list in section 10 ("Advisor meeting 9 Nov"). Per-session change record: `SESSION_LOG.md` (git-ignored, project root). Read this first, then:
+Last updated **9 Nov 2026, end of the second session**: script 13 sections 5–7 (where the US effect comes from),
+trade/FDI/arms data (WDI, IMF, SIPRI) with exposure variables in the panel, the separate `exposure/` project,
+ACLED vs UCDP comparison (17), Africa subanalysis (18). **Start with section 12 ("Start here next session").**
+Per-session change record: `SESSION_LOG.md` (git-ignored, project root). Read this first, then:
 `empirics/notes/README.md` (headline findings + index of result notes),
 `empirics/notes/variable_coding_and_functions.md` (onset vs presence coding, the four functions, reading fig10), `empirics/ANALYSIS_PLAN.md` (design,
 decisions D1–D8, robustness list R1–R12, change log), `data/README.md` (all data decisions + change log),
@@ -59,10 +61,17 @@ master.py                    runs everything; logs per step
 | 13_local_projections | **new focus (advisor, 9 Nov)**: plain panel LP (no DiD), both directions, shock first/second, cumulative; all / US sanctions, with/without ICC case 685; UCDP, ACLED, UCDP on the ACLED sample | done |
 | 14_conflict_sample_lp | arms embargoes / conflict-objective sanctions among state-years in conflict in t−1 (104 states, ~90 events): deaths −0.20 to −0.25 at h = 2, no effect on war continuation | done |
 | 15_specification_grid / 16_specification_curve | all combinations of `empirics/specifications.R` (source × measure × type × sample × years × FE × timing × controls) for UCDP/ACLED/GDELT; specification curves fig23 | done |
+| 13 sections 5–7 (9 Nov, 2nd session) | US effect by region / shock period / leave-one-country-out (fig24), by GSDB objective, full paths h = 1..8 by sample (fig25) | done |
+| 17_acled_ucdp_comparison | descriptive: coverage, agreement, countries, US events per sample (fig26–29) | done |
+| 18_africa | African states: UCDP vs ACLED on the same state-years, GDELT, in conflict, both directions (fig30–33) | done |
+| `exposure/` (separate project) | 01_exposure_lp (shock × pre-sanction trade/arms exposure, UCDP/ACLED/GDELT), 02_exposure_robustness; own README, ANALYSIS_PLAN E1–E8, notes; `--stage exposure` | done (first round) |
 
 master.py empirics order: prepare_sample, descriptives, data_diagnostics, reaction_functions, robustness,
-pvar_gmm, model_diagnostics, empirical_response, irf, gdelt, lpdid, writing_tables. Full empirics run on the
-Mac ≈ 6–7 min (irf ~110 s, gdelt ~145 s, robustness ~60 s).
+pvar_gmm, model_diagnostics, empirical_response, irf, gdelt, lpdid, local_projections, conflict_sample_lp,
+specification_grid, specification_curve, acled_ucdp_comparison, africa, writing_tables; then stage `exposure`
+(exposure_lp, exposure_robustness). Data stage now also clean_wdi, clean_imf_trade, clean_sipri, process_exposure.
+**R runs locally in the session now** (Rscript + renv on the Mac work from Claude's shell; renv reports
+"out-of-sync", harmless so far).
 
 ## 4. How to run (user, on the Mac)
 
@@ -218,8 +227,11 @@ Focus on **local projections** (the panel VAR seems to do worse in the panel set
   User decisions: data/README 4c T5, O1–O4 (decided). **Exposure in the panel (9 Nov):** `process_exposure.py` → 71 columns (incl. `trade_<g>_zero_imputed` flags for the NA robustness)
   (`trade_<us|eu|un|senders>_gdp/_share`, `arms_<g>_tiv/_share`, `trade_gdp`, `fdi_in_gdp`, `arms_supplier_hhi`, `arms_to_rebels_tiv`;
   base t−3..t−1 mean, `_l1`, `_t`); data/README 4c X1–X7. Not yet used in the empirics (next: option in specifications.R).
+  **Analysed (exposure/ project, 9 Nov):** no evidence that trade exposure to the sender changes the violence response
+  (UCDP, ACLED; GDELT positive); arms: only EU sanctions × high EU arms dependence, few events.
 - **Symbolic vs effective sanctions** — open; GSDB type flags/`descr_trade` and `success` are in `gsdb_new_cases.csv`.
-- **Arms data (SIPRI)** — open; SIPRI arms transfers (TIV) download by the user.
+- **Arms data (SIPRI)** — **done 9 Nov**: `acquire_sipri.py` (no documented API; replays the site's CSV export per
+  supplier), bilateral TIV 1950–2025 + transfer register, cleaned (`clean_sipri.py`), totals = WDI's SIPRI exports.
 
 ### Earlier list (agreed priority, 23 Oct)
 
@@ -248,6 +260,40 @@ Focus on **local projections** (the panel VAR seems to do worse in the panel set
 (Nickell bias, jackknife), Plagborg-Møller & Wolf 2021 intro, Dube et al. (only if LP-DiD stays), Hultman & Peksen
 2017 and Escribà-Folch 2010 (substantive positioning). Suggested self-check: re-estimate one Table 1 equation by
 hand with `fixest::feols` and compare.
+
+## 12. Start here next session (written 9 Nov 2026, end of session 2)
+
+**State:** all work committed on `main` (last commits: exposure project, ACLED/UCDP comparison, Africa); `main` is
+ahead of GitHub (not pushed — push also refreshes the stale "Claude" entry in GitHub's contributor sidebar; the
+history itself has no Claude author or co-author). Replication baseline set after the exposure columns (user,
+`--set-baseline`); DVC up to date (`master.py --dvc`). Working tree clean.
+
+**What we learned this session (honest version, details in the notes):**
+1. UCDP "fewer deaths after US sanctions" (h = 2) is a 1991–2009 phenomenon, not regional, robust to dropping any one
+   country but halves without Yugoslavia, Iraq, Nepal, Angola, Liberia; influential cases sit at war ends →
+   anticipation not ruled out (notes/13 sections 5–7). Objective split: decline after conflict and non-conflict
+   cases alike. Among wars, no later catch-up.
+2. ACLED differs from UCDP by **sample** (Africa/Asia 1997–2023), not measurement (r 0.85–0.99; Americas 0.39)
+   (notes/17).
+3. Africa, same state-years: UCDP and ACLED agree; only h = 1 after UN sanctions and arms embargoes excludes zero —
+   suggestive, not a finding (user caught an overstatement; notes/18 corrected).
+4. Trade exposure to the sender does not change the response (exposure/notes/01–02).
+
+**Open, in suggested order:**
+1. Leave-one-country-out for the Africa UN/arms h = 1 result (offered, not run).
+2. Peace processes: do sanctions come with ceasefires / peace agreements / peacekeeping? Data the user would
+   download: UCDP Peace Agreement and Conflict Termination datasets; IPI Peacekeeping Database or Geo-PKO.
+3. Counter-sanctions draft table (`data/scripts/cleaning/gsdb_counter_sanctions_draft.csv`, `confirmed` column) —
+   still unchecked by the user.
+4. Exposure project E6 (arms embargoes × arms dependence, pooled senders, in wars) and E7 (arms groups none/some/high,
+   proposed, to confirm).
+5. ACLED coverage start years (A5) still to check against ACLED's published list; TIES download; monthly timing
+   (ACLED months + announcement dates); "retaliation", "symmetric vs asymmetric" meanings with the advisor.
+6. Writing/main.tex has not been updated with any of the 9 Nov results.
+
+**Working rules learned (also in memory):** ask before non-mechanical data choices; document every download and
+cleaning decision in data/README (section 4c pattern); no Claude co-author in commits; Healy-style faceted figures;
+do not overstate — check what the intervals actually show before summarising.
 
 ## 11. Data side (unchanged since 20 Oct; details in `data/README.md`)
 

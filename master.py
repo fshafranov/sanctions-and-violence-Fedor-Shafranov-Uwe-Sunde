@@ -69,6 +69,7 @@ STEPS = [
     ("empirics",   "specification_grid",         "empirics/scripts/15_specification_grid.R"),   # all combinations in empirics/specifications.R, UCDP/ACLED/GDELT (~min)
     ("empirics",   "specification_curve",        "empirics/scripts/16_specification_curve.R"),  # specification curves from the grid (needs 15)
     ("empirics",   "acled_ucdp_comparison",      "empirics/scripts/17_acled_ucdp_comparison.R"), # descriptive: how ACLED and UCDP differ (coverage, agreement, events)
+    ("empirics",   "africa",                     "empirics/scripts/18_africa.R"),                # Africa subanalysis: UCDP vs ACLED on the same state-years, GDELT, in conflict
     ("empirics",   "writing_tables",            "Writing/scripts/make_tables.py"),             # LaTeX tables for Writing/main.tex from the CSV results
     # exposure extension (added 2026-11-09; separate project, see exposure/README.md)
     ("exposure",   "exposure_lp",                "exposure/scripts/01_exposure_lp.R"),          # LP: shock x pre-sanction exposure to the sender (needs 01)
