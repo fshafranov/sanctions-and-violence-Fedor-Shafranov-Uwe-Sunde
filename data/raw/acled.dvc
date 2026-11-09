@@ -1,0 +1,6 @@
+outs:
+- md5: 68760f990b3f83d5dfd4e83fd41b64bf.dir
+  size: 306494857
+  nfiles: 30
+  hash: md5
+  path: acled

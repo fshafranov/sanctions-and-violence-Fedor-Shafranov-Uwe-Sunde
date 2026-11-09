@@ -20,8 +20,18 @@ renv/library/
 renv/staging/
 
 # raw data (download per data/raw/README.md) and logs
-data/raw/*
-!data/raw/README.md
+# raw data folders, listed by name: a wildcard (data/raw/*/) makes DVC skip data/raw entirely (scmrepo matching quirk).
+# ADD EVERY NEW RAW FOLDER HERE. data/raw/README.md and DVC pointer files (data/raw/acled.dvc) stay tracked.
+data/raw/acled/
+data/raw/gdelt/
+data/raw/gdp-per-capita-worldbank/
+data/raw/gsdb/
+data/raw/owid/
+data/raw/population/
+data/raw/states/
+data/raw/ucdp_ov/
+data/raw/ucdp_prio/
+data/raw/ties/
 data/logs/
 empirics/results/logs/
 
@@ -37,3 +47,10 @@ data/clean/
 data/processed/
 empirics/results/data/
 archive/baseline/*.csv
+
+# specification-grid run archive: kept locally only (index.csv and the latest estimates are committed)
+empirics/results/spec_runs/*.csv.gz
+
+
+# failed/unlogged grid runs (local record only)
+archive/spec_runs_failed/

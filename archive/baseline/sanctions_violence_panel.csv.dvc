@@ -1,0 +1,5 @@
+outs:
+- md5: 58581ccaf1d215e56a3a5fe46751d466
+  size: 8685496
+  hash: md5
+  path: sanctions_violence_panel.csv

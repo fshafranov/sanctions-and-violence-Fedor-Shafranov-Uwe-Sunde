@@ -150,8 +150,29 @@ uv run python master.py --stage empirics  # descriptive figures and estimation (
 uv run python master.py --check           # compare outputs with the frozen baseline
 ```
 
-Other options: `--stage cleaning|processing|empirics|all`, `--only <step>`, `--skip-r`, `--set-baseline`, `--list`.
+Other options: `--stage cleaning|processing|empirics|all`, `--only <step>`, `--skip-r`, `--set-baseline`, `--list`, `--dvc`.
 Every step writes a log to `data/logs/` (empirics: `empirics/results/logs/`).
+
+### Data versions (DVC)
+
+Data files are **not in git** (the repository is public and ACLED-derived data may not be redistributed), but they
+are versioned with [DVC](https://dvc.org) (installed with `uv sync`). Git stores only small pointer files
+(`data/clean.dvc`, `data/processed.dvc`, `empirics/results/data.dvc`, `data/raw/acled.dvc`,
+`archive/baseline/*.csv.dvc`) with a fingerprint of each data version; the data themselves go to a storage folder
+outside the repository.
+
+```bash
+uv run python master.py --dvc        # after the pipeline changed data: store this version (dvc add + dvc push)
+git add -A && git commit -m "..."    # commit the changed *.dvc pointer files together with the code
+uv run dvc checkout                  # restore the data that belong to the checked-out commit
+uv run dvc status -c                 # is everything stored?
+```
+
+Tracked: cleaned and processed data, analysis panels, replication baseline, and the raw ACLED download (ACLED revises
+its data, so a new download would differ). Other raw data are fixed published versions (download per
+`data/raw/README.md`). The storage folder is set per machine and is not committed:
+`uv run dvc remote add --local -d storage "<folder>"` (here: `RA_Work_Sunde/sanctions and violence - dvc storage`,
+next to the project; same disk, so it versions but does not back up).
 
 ## Repository structure
 
@@ -196,7 +217,29 @@ master.py                              runs the full pipeline
 | lpdid | `empirics/scripts/12_lpdid.R` | `lpdid.md`, figures 11 and 16 (extension: LP-DiD event study, UCDP and GDELT) |
 | writing_tables | `Writing/scripts/make_tables.py` | `Writing/tables/*.tex` (LaTeX tables for the brief `Writing/main.tex`) |
 
+## Figures: visualisation guidelines
+
+All figures follow Kieran Healy, *Data Visualization: A Practical Introduction* (Princeton University Press, 2018;
+online at <https://socviz.co>), implemented in ggplot2 with the shared `theme_paper()` / `save_figure()` in
+`empirics/scripts/functions.R` (user decision, 9 Nov 2026). In practice:
+
+- **Show the data and its uncertainty**: estimates as points with confidence intervals (dot-and-whisker), not bars;
+  say in the caption what the interval is and how standard errors are computed.
+- **Compare with small multiples**: use `facet_wrap()` / `facet_grid()` with shared scales where values are compared
+  across panels, instead of overplotting many series or stitching separate plots together.
+- **Order meaningfully**: sort categories and specifications by value (e.g. `reorder()`), not alphabetically.
+- **Honest scales**: no dual y-axes; a zero reference line where the sign matters; bars (rarely used) start at zero;
+  say when an axis is logged.
+- **Colour with a purpose**: encode one thing (e.g. sign and significance) with a colour-blind-safe palette;
+  everything else in greys.
+- **Label directly and fully**: informative title, axis labels with units, a caption with sample, specification and
+  source; prefer direct labels to legends when there are few series; long category labels on the y axis.
+- **Minimal clutter**: no 3-D, shadows or decorative elements; light grid lines only.
+- **Reproducible**: every figure is produced by a script from saved results, never edited by hand.
+
 ## Key references
+
+- Healy, K. (2018). *Data Visualization: A Practical Introduction*. Princeton University Press. <https://socviz.co> — guidelines for all figures.
 
 - Jaeger, D. A., & Paserman, M. D. (2008). The cycle of violence? An empirical analysis of fatalities in the
   Palestinian-Israeli conflict. *American Economic Review*, 98(4), 1591–1604.

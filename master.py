@@ -60,6 +60,8 @@ STEPS = [
     ("empirics",   "lpdid",                      "empirics/scripts/12_lpdid.R"),               # EXTENSION: LP-DiD event study, UCDP + GDELT (needs 01, 11)
     ("empirics",   "local_projections",          "empirics/scripts/13_local_projections.R"),   # plain panel LP (no DiD), all / US / without ICC case 685 (needs 01)
     ("empirics",   "conflict_sample_lp",         "empirics/scripts/14_conflict_sample_lp.R"),  # arms embargoes / conflict-objective sanctions, sample in conflict in t-1 (needs 01)
+    ("empirics",   "specification_grid",         "empirics/scripts/15_specification_grid.R"),   # all combinations in empirics/specifications.R, UCDP/ACLED/GDELT (~min)
+    ("empirics",   "specification_curve",        "empirics/scripts/16_specification_curve.R"),  # specification curves from the grid (needs 15)
     ("empirics",   "writing_tables",            "Writing/scripts/make_tables.py"),             # LaTeX tables for Writing/main.tex from the CSV results
 ]
 DATA_STAGES = ["collection", "cleaning", "processing"]
@@ -119,6 +121,29 @@ def run_step(stage: str, name: str, script: str, stamp: str, master_log) -> bool
     return rc == 0
 
 
+# Data versions (added 2026-11-09): data files are not in git (public repo, ACLED terms) but versioned with DVC.
+# `master.py --dvc` records the current version of these paths and copies it to the DVC storage folder
+# (set per machine in .dvc/config.local). Then commit the changed *.dvc pointer files with git.
+DVC_TARGETS = ["data/clean", "data/processed", "empirics/results/data", "data/raw/acled",
+               *sorted(str(p.relative_to(ROOT)) for p in (ROOT / "archive" / "baseline").glob("*.csv"))]
+
+
+def snapshot_data() -> int:
+    """dvc add + dvc push for DVC_TARGETS; prints which pointer files changed."""
+    targets = [t for t in DVC_TARGETS if (ROOT / t).exists()]
+    for cmd in (["dvc", "add", *targets], ["dvc", "push"]):
+        print("$", " ".join(cmd[:2]), "...")
+        rc = subprocess.call(["uv", "run", *cmd], cwd=ROOT)
+        if rc != 0:
+            print("DVC step failed (exit code", rc, ")")
+            return rc
+    changed = subprocess.run(["git", "status", "--porcelain", "--", "*.dvc"], cwd=ROOT,
+                             capture_output=True, text=True).stdout.strip()
+    print("\nData version stored." + (f" Changed pointer files — commit them with git:\n{changed}" if changed
+                                      else " No data changed since the last snapshot."))
+    return 0
+
+
 def main():
     ap = argparse.ArgumentParser(description="Run the sanctions & violence pipeline.")
     ap.add_argument("--stage", choices=DATA_STAGES + ["empirics", "data", "all"], default="data",
@@ -128,7 +153,12 @@ def main():
     ap.add_argument("--check", action="store_true", help="afterwards, compare outputs with the frozen baseline (archive/baseline)")
     ap.add_argument("--set-baseline", action="store_true", help="afterwards, freeze the current outputs as the new baseline")
     ap.add_argument("--list", action="store_true", help="list the steps and exit")
+    ap.add_argument("--dvc", action="store_true",
+                    help="only record the current data version with DVC (dvc add + dvc push) and exit")
     args = ap.parse_args()
+
+    if args.dvc:
+        return snapshot_data()
 
     if args.list:
         for stage, name, script in STEPS:
@@ -159,6 +189,8 @@ def main():
             if not run_step("check", "check_replication", CHECK_SCRIPT, stamp, master_log):
                 print("\nReplication check reported differences — open the check_replication log.")
                 return 1
+    if any(stage in DATA_STAGES for stage, _, _ in steps):
+        print("\nData outputs may have changed: run `uv run python master.py --dvc` to store this data version.")
     print("\nDone.")
     return 0
 

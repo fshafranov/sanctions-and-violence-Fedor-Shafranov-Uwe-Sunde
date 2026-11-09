@@ -1,0 +1,5 @@
+outs:
+- md5: a3d29a18002ed9c58db8136ddd2a2661
+  size: 381657
+  hash: md5
+  path: gsdb_sent.csv

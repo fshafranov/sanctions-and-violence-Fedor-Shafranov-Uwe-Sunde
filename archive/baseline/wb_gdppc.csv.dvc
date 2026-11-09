@@ -1,0 +1,5 @@
+outs:
+- md5: d4ca2914d213d422b720bb037e9fd413
+  size: 197430
+  hash: md5
+  path: wb_gdppc.csv

@@ -1,0 +1,5 @@
+outs:
+- md5: 4651267694353ebcd0f21f49db8821d2
+  size: 1241316
+  hash: md5
+  path: gdelt_cy.csv

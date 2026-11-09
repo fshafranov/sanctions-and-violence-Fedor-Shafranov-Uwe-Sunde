@@ -55,6 +55,7 @@ master.py                    runs everything; logs per step
 | 12_lpdid | **EXTENSION, not base case**: LP-DiD (Dube et al.), UCDP + GDELT | done |
 | 13_local_projections | **new focus (advisor, 9 Nov)**: plain panel LP (no DiD), both directions, shock first/second, cumulative; all / US sanctions, with/without ICC case 685; UCDP, ACLED, UCDP on the ACLED sample | done |
 | 14_conflict_sample_lp | arms embargoes / conflict-objective sanctions among state-years in conflict in t−1 (104 states, ~90 events): deaths −0.20 to −0.25 at h = 2, no effect on war continuation | done |
+| 15_specification_grid / 16_specification_curve | all combinations of `empirics/specifications.R` (source × measure × type × sample × years × FE × timing × controls) for UCDP/ACLED/GDELT; specification curves fig23 | done |
 
 master.py empirics order: prepare_sample, descriptives, data_diagnostics, reaction_functions, robustness,
 pvar_gmm, model_diagnostics, empirical_response, irf, gdelt, lpdid, writing_tables. Full empirics run on the
@@ -92,8 +93,19 @@ cd Writing && latexmk -pdf main.tex             # compile the brief (needs MacTe
 
 ## 6. Conventions and user preferences
 
+- **Data versioning (user, 9 Nov):** data files are git-ignored (public repo) but versioned with DVC; storage folder
+  `RA_Work_Sunde/sanctions and violence - dvc storage` (in `.dvc/config.local`). After data changes run
+  `uv run python master.py --dvc`, then commit the `*.dvc` pointer files. New raw folders must be added BY NAME to
+  `.gitignore` (wildcard breaks DVC). README "Data versions (DVC)".
+
+- **Specifications (user, 9 Nov):** base definitions stay fixed; variants are options in `empirics/specifications.R`
+  (dimension tables, base first) and apply to UCDP, ACLED and GDELT through one data builder. Run the grid (15) and
+  curves (16) after adding an option; every run is logged in `empirics/results/spec_runs/index.csv`.
+
 - Every data change logged in `data/README.md`; analysis decisions and changes logged in `empirics/ANALYSIS_PLAN.md`
   (change log at the end); result interpretation in `empirics/notes/`.
+- **Figures (user, 9 Nov 2026): follow Kieran Healy, *Data Visualization: A Practical Introduction* (socviz.co)** —
+  rules in README.md "Figures: visualisation guidelines"; combine panels with ggplot2 facets, not by stitching plots.
 - Code: commented, readable variable names (user request); R for empirics, Python for cleaning; uv, not bash scripts.
 - User wants concise answers, asks "why"; be precise about what results show — **do not overstate** (see the
   corrections in section 8).
@@ -184,6 +196,10 @@ Focus on **local projections** (the panel VAR seems to do worse in the panel set
   member as a sender of UN cases (Afghanistan: 83 of 85 sender cases are UN; one own case, vs Pakistan 1961; North Korea
   never a sender). Our case-based measures count a UN case once per target, so this does not enter them; it does
   inflate `num_sanctioners` (S5).
+- **GSDB coverage gap / TIES cross-check** — open, noted 9 Nov: GSDB has few sanctions between developing countries
+  (78 of 1,547 cases) → "sanctions" = sanctions by Western states and international organisations. Possible
+  cross-check with TIES (1945–2005, incl. threats, more non-Western senders): compare South–South counts, re-run main
+  LPs 1989–2005. Needs download by the user. Details: data/README.md, "Notes on GSDB coverage".
 - **Retaliation** — open, meaning to clarify (target counter-sanctions vs violent retaliation).
 - **"Net out symmetric vs asymmetric"** — open, meaning to clarify (imposition vs lifting? multilateral vs unilateral?).
 - **Weight by trade and capital flows**: (exports + imports)/GDP as exposure weight — open; needs data (WDI trade % GDP,

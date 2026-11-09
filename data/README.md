@@ -18,6 +18,35 @@ the analysis panel covers **1950–2023** (11,989 country-years; see P6). Final 
 | Population 2020–23 missing for 2 states | P4 | Abkhazia, South Ossetia (no UN WPP data) |
 | UCDP starts in 1989 | U4, U6 | organized-violence variables missing before 1989 |
 | Yugoslavia attribution: remaining verification points | S3b, `README_yugoslavia.md` §10 | relatively resolved; controls `ex_yugo`, `ex_yugo_1991_2016` (P7) |
+| GSDB covers sanctions between developing countries poorly | GSDB coverage, note below | only 78 of 1,547 cases are single-sender sanctions between developing countries (12–19 per decade) → our sanction measures are effectively sanctions by Western states and international organisations; possible cross-check with TIES (below) |
+| GSDB has no counter-sanction / retaliation flag | note below | candidates + hand check in progress: `data/scripts/cleaning/gsdb_counter_sanctions_draft.csv` (not used yet) |
+| Palestine: sanctions set aside, violence under Israel | S-rules (set aside), A3 | GSDB cases against Palestine (17, mostly 2023) are not counted, while UCDP and ACLED put West Bank/Gaza violence under Israel → planned "without Israel" sample check |
+
+
+**Notes on GSDB coverage (added 2026-11-09).**
+
+- *Developing-country senders.* GSDB is compiled from documented sanction regimes (UN, EU, US registers), earlier
+  Western-compiled datasets and mostly English-language reporting. Sanctions by Western states and international
+  organisations are recorded well; bilateral measures between developing countries (e.g. neighbours closing borders
+  or banning trade) are thin: 78 of 1,547 cases are single-sender cases with sender and target outside the
+  Western/major-power group; in 28 of them the target sanctioned the sender at some point (mostly long rivalries:
+  India–Pakistan, India–Nepal, Malaysia–Indonesia 1963, Cambodia–Vietnam/Thailand, South Africa–Lesotho,
+  Eritrea–Ethiopia). Such disputes are also often coded as conflict rather than sanctions, and in Africa reactions to
+  coups come collectively from the AU/ECOWAS. Consequence: missing South–South sanctions bias the estimates only if
+  they are related to violence; the paper should state that "sanctions" means sanctions by Western states and
+  international organisations.
+- *Multi-sender coding.* UN (and EU) cases are recorded as one row per member state, so e.g. Afghanistan appears as a
+  "sender" in 85 cases, 83 of them UN cases (one own case: vs Pakistan 1961); North Korea is never a sender. The
+  case-based measures (S9, S11) count a UN case once per target and are not affected; `num_sanctioners` is (S5).
+- *Counter-sanctions.* No retaliation flag in GSDB; same-year moves (EU↔Russia 2014) cannot be ordered with annual
+  dates. Mechanical rule (reverse dyad within ±2 years, UN cases excluded) gives 176 candidate cases, many of them
+  regional-organisation cases flagged only through membership → hand classification needed (draft table above).
+- *Possible solution: cross-check with TIES* (Threat and Imposition of Economic Sanctions; Morgan, Bapat & Kobayashi
+  2014; 1945–2005). Event-level, includes threats as well as impositions, and records more sanctions by non-Western
+  senders. Use: (i) compare GSDB and TIES South–South case counts for the overlapping years to see whether the gap is
+  real or a GSDB artefact; (ii) re-run the main local projections with TIES impositions (and threats, as an
+  anticipation measure) for 1989–2005. Limitation: ends in 2005, so it cannot cover the 2014 and 2020–23 waves.
+  Download by the user (raw data to `data/raw/ties/`). **[open]**
 
 ---
 
@@ -213,6 +242,10 @@ Eritrea before 1993 is *not* recoded to Ethiopia; its rows are dropped (decision
 | 2026-11-09 | `clean_gsdb.py` also writes `data/clean/gsdb/gsdb_new_cases.csv`: one row per new case-target-year (1,944 rows; case id, UN/EU/US/arms/conflict-objective flags, sender, type flags incl. `descr_trade`, objective, success). Used by `13_local_projections.R` for US-only and without-ICC-685 measures. | All other outputs byte-identical (md5 checked); panel unchanged, no new baseline needed. |
 
 | 2026-11-09 | ACLED added (section 4b, A1–A7): `clean_acled.py` (new step in `master.py`), merge in `process_sanctions_violence.py`. | Panel 11,989 × 157: 16 new `acled_*` columns; all 141 existing columns identical (replication check: all outputs replicate exactly). New baseline needed (`--set-baseline`) to freeze the new columns. |
+
+| 2026-11-09 | Known gaps extended (GSDB South–South coverage, no counter-sanction flag, Palestine asymmetry); notes on GSDB coverage incl. possible TIES cross-check. | Documentation only; no data changed. |
+
+| 2026-11-09 | Data versioning with DVC: `data/clean`, `data/processed`, `empirics/results/data`, `data/raw/acled`, `archive/baseline/*.csv` tracked by DVC (pointer files in git, data in a local storage folder, `.dvc/config.local`); `master.py --dvc` stores a new version. Raw folders now git-ignored by name (a `data/raw/*/` wildcard made DVC skip `data/raw`). See README "Data versions (DVC)". | No data changed. |
 
 ## Data sources cited
 

@@ -14,3 +14,6 @@
 
 The state-year base (`clean_base.R`) has no raw file: it comes from the R package peacesciencer at run time.
 TODO: record download dates and URLs for each dataset.
+
+**Git and DVC (2026-11-09):** the raw folders are git-ignored **by name** in the root `.gitignore` — add every new
+raw folder there (e.g. `data/raw/ties/` is already listed). `acled/` is versioned with DVC (`data/raw/acled.dvc`).
