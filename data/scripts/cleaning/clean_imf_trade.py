@@ -93,7 +93,8 @@ flows = exports.merge(imports, on=["origin_gwcode", "destination_gwcode", "year"
 flows["sides"] = flows[["exports_reported_by_origin", "imports_reported_by_destination"]].notna().sum(axis=1)
 flows["flow_avg"] = flows[["exports_reported_by_origin", "imports_reported_by_destination"]].mean(axis=1)
 flows = flows.sort_values(["origin_gwcode", "destination_gwcode", "year"])
-flows.to_csv(OUT / "imts_dyadic.csv.gz", index=False)
+# mtime = 0: no timestamp in the gzip header, so identical content gives identical bytes (DVC, replication check)
+flows.to_csv(OUT / "imts_dyadic.csv.gz", index=False, compression={"method": "gzip", "mtime": 0})
 world.to_csv(OUT / "imts_world_totals.csv", index=False)
 
 both = flows[flows.sides == 2]
