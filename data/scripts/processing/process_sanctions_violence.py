@@ -230,6 +230,29 @@ base_gdelt.loc[mask, numeric_cols] = base_gdelt.loc[mask, numeric_cols].fillna(0
 base_gdelt.loc[mask, 'gdelt_n_units'] = base_gdelt.loc[mask, 'gdelt_n_units'].fillna(0)
 print("GDELT zero-filled up to", gdelt_last.year, "| missing for", sorted(GDELT_NOT_SEPARABLE))
 
+# ===========================================================================
+# 4. ACLED political violence — ADDED 2026-11-09 (data/README.md, A1-A8)
+# ===========================================================================
+# Merge by gwcode x year. Zero-fill only inside each state's ACLED coverage window
+# (coverage start .. last ACLED year); outside it the ACLED variables stay missing.
+# Deaths also per 100,000 inhabitants (pop_ext), like the UCDP variables.
+acled = pd.read_csv(CLEAN / "acled" / "acled_cy.csv")
+acled["year"] = pd.to_datetime(acled["year"].astype(str), format="%Y")
+acled_coverage = pd.read_csv(CLEAN / "acled" / "acled_coverage.csv").set_index("gwcode")["coverage_start"]
+acled_cols = [c for c in acled.columns if c.startswith("acled_")]
+base_gdelt = base_gdelt.merge(acled, on=["gwcode", "year"], how="left")
+start = base_gdelt["gwcode"].map(acled_coverage)
+covered = start.notna() & (base_gdelt["year"].dt.year >= start) & (base_gdelt["year"] <= acled["year"].max())
+base_gdelt.loc[covered, acled_cols] = base_gdelt.loc[covered, acled_cols].fillna(0)
+base_gdelt.loc[~covered, acled_cols] = None
+assert acled.merge(base_gdelt[covered][["gwcode", "year"]], on=["gwcode", "year"]).shape[0] == len(acled), \
+    "ACLED country-years outside the coverage window or without a base row"
+base_gdelt["acled_covered"] = covered.astype(int)
+for col in [c for c in acled_cols if c.startswith("acled_deaths_")]:
+    base_gdelt[f"{col}_pc"] = base_gdelt[col] / base_gdelt["pop_ext"] / 10    # per 100,000 (pop_ext in millions)
+print("ACLED: covered state-years", int(covered.sum()), "| by year:",
+      base_gdelt[covered].groupby(base_gdelt["year"].dt.year).size().to_dict())
+
 # duplicate check (printed to the log; should be 0)
 tab = base_gdelt.groupby(["gw_name", "year"]).size()
 print("duplicate gw_name-year rows:", int((tab > 1).sum()))

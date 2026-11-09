@@ -1,7 +1,7 @@
 # AI context: sanctions & violence project (handoff for the next session)
 
-Last updated **9 Nov 2026** (meeting preparation: variable coding review, no code or results changed; see
-section 9). Read this first, then:
+Last updated **9 Nov 2026, after the advisor meeting**: new plain local projections (script 13), advisor's to-do
+list in section 10 ("Advisor meeting 9 Nov"). Per-session change record: `SESSION_LOG.md` (git-ignored, project root). Read this first, then:
 `empirics/notes/README.md` (headline findings + index of result notes),
 `empirics/notes/variable_coding_and_functions.md` (onset vs presence coding, the four functions, reading fig10), `empirics/ANALYSIS_PLAN.md` (design,
 decisions D1–D8, robustness list R1–R12, change log), `data/README.md` (all data decisions + change log),
@@ -53,6 +53,8 @@ master.py                    runs everything; logs per step
 | 10_pvar_gmm | panelvar GMM (FOD, collapsed instruments lags 2–5, year-demeaned), Hansen, Andrews–Lu | done |
 | 11_gdelt | R12: everything with GDELT violence (1991–2019 and 1981–2021, thin-coverage check), JP response functions, IRFs (GDELT_BOOT_DRAWS default 99) | done |
 | 12_lpdid | **EXTENSION, not base case**: LP-DiD (Dube et al.), UCDP + GDELT | done |
+| 13_local_projections | **new focus (advisor, 9 Nov)**: plain panel LP (no DiD), both directions, shock first/second, cumulative; all / US sanctions, with/without ICC case 685; UCDP, ACLED, UCDP on the ACLED sample | done |
+| 14_conflict_sample_lp | arms embargoes / conflict-objective sanctions among state-years in conflict in t−1 (104 states, ~90 events): deaths −0.20 to −0.25 at h = 2, no effect on war continuation | done |
 
 master.py empirics order: prepare_sample, descriptives, data_diagnostics, reaction_functions, robustness,
 pvar_gmm, model_diagnostics, empirical_response, irf, gdelt, lpdid, writing_tables. Full empirics run on the
@@ -146,7 +148,50 @@ from `../empirics/results/figures/`.
 - **D7** conflict-prone subsample. Whether LP-DiD (12) enters the paper (appendix / robustness / drop).
 - Whether to pursue monthly data (needs sanction announcement dates; GSDB has years only) — raise with the advisor.
 
-## 10. Next steps (agreed priority, 23 Oct)
+## 10. Next steps
+
+### Advisor meeting 9 Nov 2026 (user's notes) — now the priority
+
+Focus on **local projections** (the panel VAR seems to do worse in the panel setting); target spec:
+**LP, without the ICC case, with ACLED, US sanctions only**. Status after the 9 Nov session:
+- LP without DiD — **done** (13_local_projections.R, UCDP). Result: US cases without ICC → log deaths −0.105 at h = 2
+  (shock second), cumulative −0.15/−0.22 at h = 2/3, transitory; all cases: no significant effect; violence → sanctions robust.
+- Without ICC case 685, US only — **done** (measures built from `data/clean/gsdb/gsdb_new_cases.csv`).
+- **ACLED** — **done 9 Nov**: downloaded by the user (`acquire_acled.py`, login in git-ignored `.env`, account sees data
+  ≥ 12 months old), `clean_acled.py`, merged into the panel (`acled_*`, data/README 4b A1–A7), in script 13 (58 states,
+  1997–2023). Result: no sanction → violence reduction with ACLED; **UCDP on the same state-years agrees** → the
+  negative UCDP US effect comes from state-years outside Africa/Asia 1997–2023. Next: locate it (region/period splits,
+  leave-one-country-out). Panel changed (new columns only) → user to run `--set-baseline`.
+- **Arms embargoes / conflict-aimed sanctions** — **done 9 Nov** (script 14, design agreed with the user): among wars
+  with the same violence history, arms embargoes are followed by lower deaths at h = 2–3 (−0.20 to −0.25 log points,
+  both FE versions), no effect on whether the war continues. Arms-only too few (28). Next checks: ACLED, UN vs non-UN,
+  leave-one-war-out.
+- **Within-year ordering of sanctions and violence (sub-year direction)** — open, recorded 9 Nov at the user's request.
+  Annual data cannot tell whether a sanction preceded or followed same-year violence ("shock first" vs "shock
+  second" in script 13 bracket the answer). Check later with monthly data: ACLED country-months
+  (`data/clean/acled/acled_cm.csv`, already built) + sanction announcement dates (not in GSDB; e.g. OFAC / Federal
+  Register for US cases, UN SC resolution dates, EU Official Journal). Compare violence in the months before vs
+  after the announcement.
+- **Counter-sanctions / "noise" sanctions** — idea noted 9 Nov (user), to look at later. (i) Neighbouring developing
+  countries in disputes may sanction and counter-sanction each other; (ii) Russia's 2014 counter-sanctions on EU members
+  (case 995). Such cases are unrelated to violence in the target and may make results less stable. Methodological issues
+  discussed: GSDB has no retaliation flag; same-year moves (EU<->Russia 2014) cannot be ordered with annual dates, so a
+  mechanical "reverse sanction exists" rule also flags the original; group cases need membership matching; long mutual
+  disputes (US-Cuba, US-Iran, India-Pakistan, Arab League-Israel) are not clear retaliation. Options: (A) mechanical
+  rule, (B) mechanical candidates + hand check (preferred), (C) objective filter (drop policy_change/other),
+  (D) counter-sanctions as a separate shock ("is retaliation having an effect"). US-only measure already excludes most.
+  Checked 9 Nov: the impression that Afghanistan/North Korea "sanction many countries" comes from GSDB listing every UN
+  member as a sender of UN cases (Afghanistan: 83 of 85 sender cases are UN; one own case, vs Pakistan 1961; North Korea
+  never a sender). Our case-based measures count a UN case once per target, so this does not enter them; it does
+  inflate `num_sanctioners` (S5).
+- **Retaliation** — open, meaning to clarify (target counter-sanctions vs violent retaliation).
+- **"Net out symmetric vs asymmetric"** — open, meaning to clarify (imposition vs lifting? multilateral vs unilateral?).
+- **Weight by trade and capital flows**: (exports + imports)/GDP as exposure weight — open; needs data (WDI trade % GDP,
+  or bilateral trade with the US/sender, IMF DOTS / CEPII).
+- **Symbolic vs effective sanctions** — open; GSDB type flags/`descr_trade` and `success` are in `gsdb_new_cases.csv`.
+- **Arms data (SIPRI)** — open; SIPRI arms transfers (TIV) download by the user.
+
+### Earlier list (agreed priority, 23 Oct)
 
 1. **DONE 23 Oct (master run 16:50):** `ex_yugo_1991_2016` removed from CONTROLS; 09 part 4 (same-sample control
    check, D8) and part 5 (Yugoslavia R9); notes, ANALYSIS_PLAN, main.tex (new section 7.5, Tables 12–13 via

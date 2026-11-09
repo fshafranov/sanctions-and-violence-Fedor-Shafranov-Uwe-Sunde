@@ -24,3 +24,16 @@ data/raw/*
 !data/raw/README.md
 data/logs/
 empirics/results/logs/
+
+# per-session change log (kept off git on purpose)
+SESSION_LOG.md
+
+# credentials (ACLED API login etc.) — never commit
+.env
+
+# data files are not committed (decision 2026-11-09: public repo; ACLED-derived data may not be redistributed).
+# Rebuild with master.py; raw data per data/raw/README.md.
+data/clean/
+data/processed/
+empirics/results/data/
+archive/baseline/*.csv

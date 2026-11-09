@@ -40,6 +40,7 @@ STEPS = [
     ("cleaning",   "clean_base",                 "data/scripts/cleaning/clean_base.R"),
     ("cleaning",   "clean_gsdb",                 "data/scripts/cleaning/clean_gsdb.py"),
     ("cleaning",   "clean_ucdp_ov",              "data/scripts/cleaning/clean_ucdp_ov.py"),
+    ("cleaning",   "clean_acled",                "data/scripts/cleaning/clean_acled.py"),
     ("cleaning",   "clean_gdelt",                "data/scripts/cleaning/clean_gdelt.py"),
     ("cleaning",   "clean_population",           "data/scripts/cleaning/clean_population.py"),
     ("cleaning",   "clean_gdp",                  "data/scripts/cleaning/clean_gdp.py"),
@@ -57,7 +58,9 @@ STEPS = [
     ("empirics",   "irf",                        "empirics/scripts/08_irf.R"),                 # impulse responses, bootstrap (~10 min)
     ("empirics",   "gdelt",                      "empirics/scripts/11_gdelt.R"),               # GDELT robustness R12: all of the above with GDELT (~17 min; needs 04)
     ("empirics",   "lpdid",                      "empirics/scripts/12_lpdid.R"),               # EXTENSION: LP-DiD event study, UCDP + GDELT (needs 01, 11)
-    ("empirics",   "writing_tables",             "Writing/scripts/make_tables.py"),             # LaTeX tables for Writing/main.tex from the CSV results
+    ("empirics",   "local_projections",          "empirics/scripts/13_local_projections.R"),   # plain panel LP (no DiD), all / US / without ICC case 685 (needs 01)
+    ("empirics",   "conflict_sample_lp",         "empirics/scripts/14_conflict_sample_lp.R"),  # arms embargoes / conflict-objective sanctions, sample in conflict in t-1 (needs 01)
+    ("empirics",   "writing_tables",            "Writing/scripts/make_tables.py"),             # LaTeX tables for Writing/main.tex from the CSV results
 ]
 DATA_STAGES = ["collection", "cleaning", "processing"]
 CHECK_SCRIPT = "data/scripts/checks/check_replication.py"

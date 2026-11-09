@@ -334,6 +334,21 @@ new_cy = (new.groupby(["sanctioned_state_iso3", "year"])
                   new_arms_sanction=("arms", "max"), new_conflict_obj_sanction=("conflict_obj", "max"))
              .reset_index())
 
+# ADDED 2026-11-09: case-level file of NEW case-target-years, so that the empirics can build
+# alternative sanction measures without re-running the pipeline (e.g. US cases only, without
+# the ICC group case 685, by sanction type or objective). Does not change any other output.
+new_cases_out = new[["sanctioned_state_iso3", "yr", "case", "un", "eu", "us", "arms", "conflict_obj"]].copy()
+new_cases_out = new_cases_out.rename(columns={"sanctioned_state_iso3": "country_iso3", "yr": "year"})
+for col in ["sanctioning_state", "trade", "descr_trade", "military", "financial", "travel", "other",
+            "target_mult", "objective", "success"]:
+    new_cases_out[col] = new_cases_out["case"].map(case_info[col])
+for col in ["un", "eu", "us", "arms", "conflict_obj"]:
+    new_cases_out[col] = new_cases_out[col].astype(int)
+new_cases_out = new_cases_out.sort_values(["country_iso3", "year", "case"]).reset_index(drop=True)
+new_cases_out.to_csv(OUT / "gsdb_new_cases.csv", index=False)
+print("Wrote", OUT / "gsdb_new_cases.csv", new_cases_out.shape,
+      "| case 685 (US, ICC signatories) new targets:", int(new_cases_out["case"].eq(685).sum()))
+
 lift = fl[["sanctioned_state_iso3", "case", "yr"]].copy()
 lift["yr"] = lift["yr"] + 1                                    # candidate first year without the case
 lift = lift[[(i, c, t) not in active and (i, t) in exists and t <= fl["yr"].max()
