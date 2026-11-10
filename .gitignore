@@ -38,6 +38,7 @@ data/raw/sipri/
 data/logs/
 empirics/results/logs/
 exposure/results/logs/
+doubly_robust/results/logs/
 
 # per-session change log (kept off git on purpose)
 SESSION_LOG.md

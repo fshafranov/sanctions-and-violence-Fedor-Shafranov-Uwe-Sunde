@@ -47,3 +47,11 @@ Outputs: `results/tables/spec_grid_estimates.csv.gz` (43,680 estimates), `result
   "sanctions reduce violence" claim is not supported, and the earlier US dip is not robust.
 - Caveat: shares of significant results must be compared with the ~5 % expected by chance in each direction; 6 %
   significant negative at h = 2 is close to chance overall, the concentration in specific options is what matters.
+
+## Companion figures by option (added 2026-11-10)
+
+`fig23b_spec_dimensions_<question>.png` (script 16): for each option of each dimension, the share of its
+specifications that are significantly negative / not significant / significantly positive, with the median. Same
+specifications as the curve; easier to read than the tick panel below the curve. Cumulative deaths t..t+3: UCDP 32 %
+significantly negative (ACLED 0 %); arms embargo median −0.30 but only 14 % significant; conflict objective −0.14
+(19 %); in-conflict sample −0.15 (21 %); US measures positive medians.

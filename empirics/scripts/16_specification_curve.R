@@ -12,7 +12,8 @@
 # same-year co-movement.
 #
 # Input : empirics/results/tables/spec_grid_estimates.csv.gz
-# Output: empirics/results/figures/fig23_spec_curve_<question>.png, empirics/results/tables/spec_curves.md
+# Output: empirics/results/figures/fig23_spec_curve_<question>.png, fig23b_spec_dimensions_<question>.png (shares by option),
+#         empirics/results/tables/spec_curves.md
 # =============================================================================
 
 source(here::here("empirics", "scripts", "00_setup.R"))
@@ -140,9 +141,45 @@ markdown <- c("# Specification curves", "",
               "incidence estimates are in probability units. Share columns: fraction of all ",
               "specifications; significant = p < 0.05. 'By dimension' shows the median estimate and share significant ",
               "for each option, i.e. which choices move the answer.", "")
+# Companion figure (added 2026-11-10, user: the dashboard below the curve is hard to read): for every option of
+# every dimension, the share of its specifications that are significantly negative / not significant /
+# significantly positive, with the median estimate as a label. Same specifications as the curve.
+dimension_shares_figure <- function(name, question, data) {
+  shares <- bind_rows(lapply(CURVE_DIMENSIONS, function(d)
+    data %>% group_by(option = .data[[d]]) %>%
+      summarise(n = n(), median = median(estimate),
+                `negative, p < 0.05` = mean(significance == "negative, p < 0.05"),
+                `not significant` = mean(significance == "not significant"),
+                `positive, p < 0.05` = mean(significance == "positive, p < 0.05"), .groups = "drop") %>%
+      mutate(dimension = CURVE_LABELS[[d]],
+             option = factor(map_chr(option, ~ label_option(d, .x)), levels = rev(unname(DIMENSIONS[[d]]))))))
+  long <- shares %>%
+    pivot_longer(c(`negative, p < 0.05`, `not significant`, `positive, p < 0.05`), names_to = "significance", values_to = "share") %>%
+    mutate(significance = factor(significance, c("positive, p < 0.05", "not significant", "negative, p < 0.05")),
+           dimension = factor(dimension, unname(CURVE_LABELS[CURVE_DIMENSIONS])))
+  labels <- shares %>% mutate(dimension = factor(dimension, unname(CURVE_LABELS[CURVE_DIMENSIONS])),
+                              text = sprintf("median %+.2f, %d specifications", median, n))
+  figure <- ggplot(long, aes(x = share, y = option, fill = significance)) +
+    geom_col(width = 0.7) +
+    geom_text(data = labels, aes(x = 1.02, y = option, label = text), inherit.aes = FALSE,
+              hjust = 0, size = 2.6, colour = "#52514e") +
+    facet_grid(dimension ~ ., scales = "free_y", space = "free_y", switch = "y") +
+    scale_x_continuous(labels = scales::percent, breaks = seq(0, 1, 0.25), limits = c(0, 1.45), expand = c(0, 0)) +
+    scale_fill_manual(values = SIGNIFICANCE_COLOURS, breaks = c("negative, p < 0.05", "not significant", "positive, p < 0.05")) +
+    labs(title = paste0("Which choices move the answer: ", question$title),
+         subtitle = paste0("Share of specifications with each option, by result (", nrow(data),
+                           " specifications, shock second)"),
+         x = "Share of the specifications that use this option", y = NULL, fill = NULL) +
+    theme_paper() +
+    theme(strip.placement = "outside", strip.text.y.left = element_text(angle = 0, hjust = 1),
+          panel.grid.major.y = element_blank())
+  save_figure(figure, paste0("fig23b_spec_dimensions_", name, ".png"), 9, 7)
+}
+
 for (name in names(QUESTIONS)) {
   data <- spec_curve(name, QUESTIONS[[name]])
   if (is.null(data)) next
+  dimension_shares_figure(name, QUESTIONS[[name]], data)
   by_dimension <- bind_rows(lapply(CURVE_DIMENSIONS, function(d)
     data %>% group_by(option = .data[[d]]) %>% summarise_curve() %>%
       mutate(dimension = d, option = map_chr(option, ~ label_option(d, .x)), .before = 1)))
