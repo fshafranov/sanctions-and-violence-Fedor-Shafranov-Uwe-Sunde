@@ -23,7 +23,7 @@ Yearly aggregates of the 12 monthly forecasts (decision V2, data/README section 
 Decisions:
   V1 Probability column by model family: fatalities002/003 main_dich; fatalities001 sc_cm_sb_dich_main;
      r_2021 sc_cm_sb_main (0-1, Africa + Middle East only). r_2021 runs have no fatality forecast.
-  V3 Year-ahead choice: among runs covering all 12 months of Y, the latest first forecast month <= January of Y;
+  V3 Year-ahead choice: among runs covering all 12 months of Y and starting within the 12 months up to January of Y, the latest;
      ties -> newer model family. Horizon (months from last input month to the end of Y) is kept.
 """
 
@@ -85,7 +85,8 @@ def main():
     vint.to_csv(OUT / "views_forecasts_cy_vintages.csv", index=False)
 
     vint["jan_id"] = (vint["year"] - 1980) * 12 + 1
-    cand = vint[vint["vintage_month_id"] <= vint["jan_id"]].copy()
+    # year-ahead only: window starts within the 12 months up to January of Y (drops 2-3-year-ahead targets)
+    cand = vint[vint["vintage_month_id"].between(vint["jan_id"] - 11, vint["jan_id"])].copy()
     cand["rank"] = cand["family"].map(FAMILY_RANK)
     ahead = (cand.sort_values(["gwcode", "year", "vintage_month_id", "rank"])
                  .groupby(["gwcode", "year"]).tail(1).drop(columns=["jan_id", "rank"]))
