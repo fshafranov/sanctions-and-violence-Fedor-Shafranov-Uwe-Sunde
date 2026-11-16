@@ -62,3 +62,7 @@ empirics/results/spec_runs/*.csv.gz
 
 # failed/unlogged grid runs (local record only)
 archive/spec_runs_failed/
+
+# dashboard dev harness bundle (generated, ~500 KB)
+dashboard/dev/harness_bundle.html
+dashboard/dev/plotly_preview.html

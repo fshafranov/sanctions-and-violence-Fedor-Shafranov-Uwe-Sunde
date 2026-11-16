@@ -1,0 +1,59 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Dashboard harness</title>
+<style>
+:root{--color-fg:#1d1d1f;--color-fg-muted:#6b6b70;--color-bg:#fff;--color-panel:#fafafa;--color-border-line:#e3e3e6;--color-ok:#2a7a3b;--color-warn:#a66a00;--color-bad:#b3261e;
+--font-anthropic-sans:system-ui,sans-serif;--font-anthropic-serif:Georgia,serif;--cds-font-size-caption:12px;--cds-font-size-body:14px;--cds-font-size-heading:18px;--cds-font-size-title:28px;--cds-font-weight-medium:600;
+--cds-gap-xs:4px;--cds-gap-sm:8px;--cds-gap-md:12px;--cds-gap-lg:20px;--cds-gap-xl:32px;--cds-pad-lg:20px;--cds-radius:8px;
+--cds-chart-grid:#ececef;--cds-chart-axis:#c9c9ce;--cds-chart-reference:#8a8a90;--cds-text-secondary:#6b6b70;--cds-surface-popover:#fff;--cds-border:#ddd;--cds-shadow-popover:0 4px 16px rgba(0,0,0,.12)}
+body{margin:0;font:14px system-ui;background:var(--color-bg);color:var(--color-fg)}
+#dash-root{padding:24px}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/d3@7.9.0/dist/d3.min.js"></script>
+</head><body><div id="dash-root"></div>
+<script>
+const IDS = ['year_violence','conflicts_year','us_conflicts','country_period','country_year','us_cases','country_year_all'];
+const store = {}, calcs = {}, draws = {}, T = (window.T = {});
+const time = (k, f) => { const t = performance.now(); try { return f(); } finally { const d = performance.now() - t; (T[k] ||= []).push(d); } };
+window.dash = {
+  colors: ['#2f6fdb','#e8743b','#13a88a','#e0a100','#8a5cd1','#c2457a'],
+  data(id) {
+    if (store[id]) return { status: 'ok', data: store[id], columns: store[id].columns };
+    if (calcs[id]) { const c = calcs[id]; if (!c.cache) c.cache = time('calc:' + id, () => c.fn(...c.inputs.map((i) => dash.data(i).data))); return { status: 'ok', data: c.cache }; }
+    return { status: 'missing', data: [] };
+  },
+  calc(id, def) { calcs[id] = def; },
+  loader() {}, onData(fn) { fn(); }, setLink() {}, params: () => ({}), setParams() {}, resetParams() {},
+  draw(name, fn) {
+    if (fn) { draws[name] = fn; return; }
+    run(name);
+  },
+};
+function run(name) {
+  const fn = draws[name]; if (!fn) return;
+  document.querySelectorAll(`[data-draw="${name}"]`).forEach((el) => time('draw:' + name, () => {
+    if (typeof fn === 'function') return fn(el);
+    if (!el.__made) { el.replaceChildren(); el.__made = { v: fn.mount ? fn.mount(el) : undefined }; }
+    return fn.update && fn.update(el, el.__made.v);
+  }));
+}
+window.runAll = () => Object.keys(draws).forEach(run);
+let rt; window.addEventListener('resize', () => { clearTimeout(rt); rt = setTimeout(runAll, 50); });
+(async () => {
+  for (const id of IDS) {
+    const rows = d3.csvParse(await (await fetch('../data/' + id + '.csv')).text(), (r) => { for (const k in r) if (r[k] === '') r[k] = null; return r; });
+    store[id] = rows;
+  }
+  const html = await (await fetch('../page/index.html')).text();
+  const root = document.getElementById('dash-root');
+  const tmp = document.createElement('div'); tmp.innerHTML = html;
+  const scripts = [...tmp.querySelectorAll('script')]; scripts.forEach((s) => s.remove());
+  root.append(...tmp.childNodes);
+  for (const s of scripts) {
+    if (s.src) { await new Promise((res) => { const n = document.createElement('script'); n.src = '../page/' + s.getAttribute('src'); n.onload = res; document.body.appendChild(n); }); }
+    else time('script', () => (0, eval)(s.textContent));
+  }
+  time('initial', runAll);
+  window.ready = true;
+})();
+</script></body></html>
