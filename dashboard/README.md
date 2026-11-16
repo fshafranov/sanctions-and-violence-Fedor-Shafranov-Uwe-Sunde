@@ -29,6 +29,13 @@ Not part of `master.py` (outputs are not used by the analysis).
 | `page/index.html` | page source of the older Data-type version |
 | `dev/` | `harness.html` + `bundle_harness.py`: stand-in for the Data-type runtime to time the old page locally; `plotly_preview.html` (git-ignored) = local preview of the Plotly page with a doctype wrapper |
 
+## Panel "Who the US sanctioned in a year" (added 16 Nov 2026)
+
+`build_dashboard_data.py` step 6 writes `data/us_active.csv`: every GSDB case with the United States among the senders
+in force against a target per year 1989–2023 (from `data/clean/gsdb/gsdb_case_senders.csv`, after the cleaning
+rules), status new / ongoing / joined / inherited, plus lifted (first year without the case). Matches the panel's
+`us_sanction` exactly (checked in the script). ICC case 685 hidden by default (checkbox).
+
 ## Definitions (also on the page, "Definitions and data")
 
 - Deaths = UCDP organized violence best estimate (state-based + non-state + one-sided), by country of location.

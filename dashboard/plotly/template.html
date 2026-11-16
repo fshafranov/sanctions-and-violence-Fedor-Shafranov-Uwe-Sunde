@@ -60,6 +60,13 @@ td { padding: 7px 10px; border-bottom: 1px solid var(--line); vertical-align: to
 .n { text-align: right; white-space: nowrap; }
 .pill { display: inline-block; padding: 1px 8px; border-radius: 999px; font-size: 0.85em; border: 1px solid var(--line); white-space: nowrap; }
 .pill.primary { border-color: var(--fg); }
+.pill.new { background: var(--fg); color: var(--panel); border-color: var(--fg); }
+.pill.lifted { color: var(--muted); border-style: dashed; }
+tr.is-lifted td { color: var(--muted); }
+.check { display: inline-flex; gap: 6px; align-items: center; color: var(--muted); font-size: 0.85em; }
+.check input { accent-color: var(--s1); }
+.act-sum { max-width: 90ch; }
+.act-sum b { font-weight: 600; font-variant-numeric: tabular-nums; }
 .down { color: #1a7f37; } .up { color: #c4322d; }
 :root[data-theme="dark"] .down { color: #4cc26a; } :root[data-theme="dark"] .up { color: #ff7b72; }
 @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .down { color: #4cc26a; } :root:not([data-theme="light"]) .up { color: #ff7b72; } }
@@ -129,6 +136,31 @@ dt { font-weight: 600; } dd { margin: 0; color: var(--muted); }
         <div class="chart" id="chart-country"></div>
       </div>
     </div>
+  </section>
+
+  <section class="card" id="us-year">
+    <div class="head">
+      <h2>Who the US sanctioned in <span class="sel-year"></span></h2>
+      <div class="controls">
+        <button type="button" id="act-prev" aria-label="Previous year">←</button>
+        <select id="act-year" aria-label="Year"></select>
+        <button type="button" id="act-next" aria-label="Next year">→</button>
+      </div>
+    </div>
+    <p class="act-sum" id="act-summary"></p>
+    <div class="controls">
+      <div class="tabs" role="group" aria-label="Show">
+        <button type="button" class="tab act-tab" data-show="all" aria-pressed="true">All in force</button>
+        <button type="button" class="tab act-tab" data-show="new" aria-pressed="false">New this year</button>
+        <button type="button" class="tab act-tab" data-show="lifted" aria-pressed="false">Lifted this year</button>
+      </div>
+      <label class="check" id="act-icc-wrap"><input type="checkbox" id="act-icc"> Include ICC case 685 (<span id="act-icc-n">0</span> countries)</label>
+    </div>
+    <div class="tablewrap tall"><table>
+      <thead><tr><th>Target</th><th>Status</th><th class="n">Case</th><th class="n">GSDB years</th><th>Type</th><th>Objective (GSDB)</th><th>Other senders</th><th class="n">Deaths that year</th></tr></thead>
+      <tbody id="act-body"></tbody>
+    </table></div>
+    <p class="note">Every GSDB V4 case with the US among the senders that is active against the country in the year, the same set as "US sanction in force". New: the case begins that year. Joined: an existing case extended to the country (e.g. CoCom successor states). Inherited: the country enters the state system with the case running. Lifted: first year without the case. Types are GSDB's case-level codes; under the Yugoslavia attribution rules a successor state can carry only part of them. Follows the year selected above. GSDB ends in 2023.</p>
   </section>
 
   <section class="card" id="map-card">
@@ -537,6 +569,48 @@ function drawCases() {
   }));
 }
 
+// ---- who the US sanctioned in a year -----------------------------------------------------------------
+const ACT = D.act.map((r) => Object.fromEntries(D.act_cols.map((k, i) => [k, r[i]])));
+const actByYear = d3.group(ACT, (r) => r.year);
+const ICC = 685;
+const ACT_ORDER = { new: 0, joined: 1, inherited: 2, ongoing: 3, lifted: 4 };
+const actShow = { show: 'all', icc: false };
+const pill = (text, cls) => { const s = document.createElement('span'); s.className = 'pill' + (cls ? ' ' + cls : ''); s.textContent = text; return s; };
+function drawActive() {
+  const y = S.year;
+  document.getElementById('act-year').value = String(Math.min(y, 2023));
+  const all = actByYear.get(y) || [];
+  const iccN = new Set(all.filter((r) => r.case === ICC && r.status !== 'lifted').map((r) => r.country)).size;
+  document.getElementById('act-icc-n').textContent = String(iccN);
+  document.getElementById('act-icc-wrap').hidden = iccN === 0;
+  const rows = all.filter((r) => actShow.icc || r.case !== ICC);
+  const inForce = rows.filter((r) => r.status !== 'lifted');
+  const nw = rows.filter((r) => r.status === 'new'), lf = rows.filter((r) => r.status === 'lifted'), jn = rows.filter((r) => r.status === 'joined');
+  const nC = (v) => new Set(v.map((r) => r.country)).size;
+  const sum = document.getElementById('act-summary');
+  if (y > 2023) { sum.textContent = 'GSDB V4 ends in 2023, so there are no sanction data for ' + y + '.'; }
+  else {
+    const parts = ['In ' + y + ' the US had sanctions in force against ', nC(inForce) + ' countries', ' (' , inForce.length + ' case-targets', '). New this year: ',
+      nw.length + ' case' + (nw.length === 1 ? '' : 's'), ' against ', nC(nw) + (nC(nw) === 1 ? ' country' : ' countries'),
+      (jn.length ? '; ' + jn.length + ' joined' : '') + '. Lifted: ', String(lf.length), '.' + (!actShow.icc && iccN ? ' Not counted: ICC case 685 against ' + iccN + ' countries.' : '')];
+    sum.replaceChildren(...parts.map((t, i) => { if (i % 2 === 0) return document.createTextNode(t); const b = document.createElement('b'); b.textContent = t; return b; }));
+  }
+  const shown = rows.filter((r) => actShow.show === 'all' ? r.status !== 'lifted' : actShow.show === 'new' ? r.status === 'new' : r.status === 'lifted')
+    .sort((a, b) => ACT_ORDER[a.status] - ACT_ORDER[b.status] || b.begin - a.begin || a.country.localeCompare(b.country) || a.case - b.case);
+  const body = document.getElementById('act-body');
+  if (!shown.length) { const tr = document.createElement('tr'); const c = td(y > 2023 ? 'No GSDB data after 2023.' : 'None.'); c.colSpan = 8; tr.append(c); body.replaceChildren(tr); return; }
+  body.replaceChildren(...shown.map((r) => {
+    const tr = document.createElement('tr');
+    if (r.status === 'lifted') tr.className = 'is-lifted';
+    const st = td('');
+    st.appendChild(r.status === 'new' ? pill('New', 'new') : r.status === 'lifted' ? pill('Lifted', 'lifted') : r.status === 'ongoing' ? pill('Since ' + r.begin) : pill(r.status === 'joined' ? 'Joined' : 'Inherited'));
+    const types = pretty(r.types) + (r.descr_trade ? ' (' + pretty(r.descr_trade) + ')' : '');
+    tr.append(td(r.country), st, td(r.case, 'n'), td(r.begin === r.end ? String(r.begin) : r.begin + '–' + r.end, 'n'), td(types || '—'),
+      td(pretty(r.objective)), td(r.co_senders || '—'), td(fmt(r.deaths), 'n'));
+    return tr;
+  }));
+}
+
 // ---- interaction ----------------------------------------------------------------------------------------
 const yearSel = document.getElementById('year-select');
 yearSel.replaceChildren(...YEARS.map((y) => new Option(String(y), String(y))));
@@ -547,7 +621,7 @@ function refreshYear() {
   document.querySelectorAll('.sel-year').forEach((e) => { e.textContent = String(S.year); });
   yearSel.value = String(S.year); slider.value = String(S.year);
   if (elYears.data) Plotly.relayout(elYears, { shapes: yearShapes() });
-  drawDrill(); drawCountry(); colorMap(); drawRegions();
+  drawDrill(); drawCountry(); colorMap(); drawRegions(); drawActive();
 }
 // Coalesce bursts (slider drags, Play) into one redraw per animation frame
 function setYear(y) { S.year = Math.max(1989, Math.min(2025, Math.round(+y))); if (!pending) pending = requestAnimationFrame(refreshYear); }
@@ -565,9 +639,20 @@ play.addEventListener('click', () => {
   S.timer = setInterval(() => { if (S.year >= 2025) { stop(); return; } setYear(S.year + 1); }, 650);
 });
 pause.addEventListener('click', stop);
-document.querySelectorAll('.tab').forEach((b) => b.addEventListener('click', () => {
+const actYear = document.getElementById('act-year');
+actYear.replaceChildren(...d3.range(1989, 2024).map((y) => new Option(String(y), String(y))));
+actYear.addEventListener('change', () => { S.country = null; setYear(actYear.value); });
+document.getElementById('act-prev').addEventListener('click', () => setYear(Math.min(S.year, 2024) - 1));
+document.getElementById('act-next').addEventListener('click', () => setYear(Math.min(S.year + 1, 2023)));
+document.getElementById('act-icc').addEventListener('change', (e) => { actShow.icc = e.target.checked; drawActive(); });
+document.querySelectorAll('.act-tab').forEach((b) => b.addEventListener('click', () => {
+  actShow.show = b.dataset.show;
+  document.querySelectorAll('.act-tab').forEach((t) => t.setAttribute('aria-pressed', t === b ? 'true' : 'false'));
+  drawActive();
+}));
+document.querySelectorAll('.tab:not(.act-tab)').forEach((b) => b.addEventListener('click', () => {
   S.period = b.dataset.period;
-  document.querySelectorAll('.tab').forEach((t) => t.setAttribute('aria-pressed', t === b ? 'true' : 'false'));
+  document.querySelectorAll('.tab:not(.act-tab)').forEach((t) => t.setAttribute('aria-pressed', t === b ? 'true' : 'false'));
   drawTop(); drawCases();
 }));
 

@@ -13,6 +13,8 @@ Outputs in dashboard/data/:
   country_period.csv    country x period: deaths, US sanction cases, US conflict years
   country_year.csv      top-40 countries by deaths x year: deaths, US cases, US sanction in force, US party
   us_cases.csv          US sanction cases 1989-2023 (w/o ICC case 685) with target deaths before/after
+  us_active.csv         every US case in force per target-year 1989-2023 (status new/ongoing/joined/inherited,
+                        incl. ICC case 685), plus status 'lifted' in the first year without the case
 
 US involvement in UCDP/PRIO = gwcode 2 in gwno_a / gwno_b (primary) or gwno_a_2nd / gwno_b_2nd (secondary).
 US sanction cases follow script 13 (us == 1, case != 685). Deaths = UCDP best estimate, all organized violence.
@@ -180,6 +182,51 @@ uc["conflict_obj"] = uc["conflict_obj"].astype(int)
 uc = uc[["case", "country", "region", "year", "period", "objective", "conflict_obj", "success",
          "deaths_before", "deaths_start", "deaths_after2"]].sort_values(["year", "country"])
 uc.to_csv(OUT / "us_cases.csv", index=False)
+
+# --- 6. US cases in force per target-year (who the US sanctioned each year) --------------------
+# Same set as the panel's us_sanction: case-target-years of the cleaned dyadic GSDB (gsdb_case_senders, after the
+# drop/recode/Yugoslavia rules) whose case has "United States" among the senders in GSDB_V4.csv. Status follows
+# clean_gsdb.py step 5c: new = case begins that year and was not in force for the target the year before;
+# joined = an existing case extended to a state that existed the year before; inherited = state enters the
+# panel with the case already running; lifted = first year without the case for a state that still exists.
+info = pd.read_csv(ROOT / "data/raw/gsdb/GSDB_V4.csv").set_index("case_id")
+is_us = info["sanctioning_state"].astype(str).str.split(r",\s*").apply(lambda t: "United States" in t)
+snd = pd.read_csv(ROOT / "data/clean/gsdb/gsdb_case_senders.csv")
+act = (snd[snd["case"].map(is_us)].drop_duplicates(["sanctioned_state_iso3", "year", "case"])
+       [["sanctioned_state_iso3", "sanctioned_gwcode", "year", "case"]]
+       .rename(columns={"sanctioned_state_iso3": "iso3", "sanctioned_gwcode": "gwcode"}))
+act["gwcode"] = act["gwcode"].astype(int)
+on = set(zip(act["iso3"], act["case"], act["year"]))
+exists = set(zip(iso_map["iso3c"], iso_map["year"]))
+begins = act["case"].map(info["begin"]).eq(act["year"])
+prev = pd.Series([(i, c, t - 1) in on for i, c, t in zip(act["iso3"], act["case"], act["year"])], index=act.index)
+existed = pd.Series([(i, t - 1) in exists for i, t in zip(act["iso3"], act["year"])], index=act.index)
+act["status"] = "ongoing"
+act.loc[~prev & begins, "status"] = "new"
+act.loc[~prev & ~begins & existed, "status"] = "joined"
+act.loc[~prev & ~begins & ~existed, "status"] = "inherited"
+lift = act[["iso3", "gwcode", "case", "year"]].assign(year=lambda d: d["year"] + 1)
+lift = lift[[(i, c, t) not in on and (i, t) in exists and t <= act["year"].max()
+             for i, c, t in zip(lift["iso3"], lift["case"], lift["year"])]].assign(status="lifted")
+act = pd.concat([act, lift], ignore_index=True)
+act = act[(act["year"] >= 1989) & (act["year"] <= 2023)]
+for col in ["begin", "end", "sanctioning_state", "arms", "military", "trade", "descr_trade", "financial", "travel",
+            "other", "objective", "success", "sanctioned_state"]:
+    act[col] = act["case"].map(info[col])
+act["types"] = [",".join(t for t in ["arms", "military", "trade", "financial", "travel", "other"] if r[t] == 1)
+                for _, r in act.iterrows()]
+act["co_senders"] = act["sanctioning_state"].astype(str).str.split(r",\s*").apply(
+    lambda t: ", ".join(x for x in t if x != "United States"))
+gw_name = ov.drop_duplicates("gwcode").set_index("gwcode")["country"]
+act["country"] = act["gwcode"].map(gw_name).fillna(act["iso3"])
+act = act.merge(cy[["gwcode", "year", "deaths"]], on=["gwcode", "year"], how="left")
+act["deaths"] = act["deaths"].fillna(0).round(0).astype(int)
+inforce = act[act["status"] != "lifted"].groupby("year")["iso3"].nunique()
+chk = panel[(panel["us_sanction"] == 1) & panel["year"].between(1989, 2023)].groupby("year")["iso3c"].nunique()
+print("US targets in force per year, max abs diff vs panel us_sanction:", int((inforce - chk).abs().max()))
+act = act[["year", "gwcode", "country", "case", "status", "begin", "end", "types", "descr_trade", "objective",
+           "success", "co_senders", "sanctioned_state", "deaths"]].sort_values(["year", "status", "country", "case"])
+act.to_csv(OUT / "us_active.csv", index=False)
 
 for f in sorted(OUT.glob("*.csv")):
     print(f.name, len(pd.read_csv(f)), "rows")

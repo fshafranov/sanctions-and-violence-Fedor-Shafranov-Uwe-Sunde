@@ -36,6 +36,7 @@ cy = pd.read_csv(DATA / "country_year_all.csv")
 cp = pd.read_csv(DATA / "country_period.csv")
 cases = pd.read_csv(DATA / "us_cases.csv")
 usconf = pd.read_csv(DATA / "us_conflicts.csv")
+active = pd.read_csv(DATA / "us_active.csv")
 world = (DASH / "page" / "world.js").read_text()
 
 # --- Period summary (same definitions as the notes on the page) ------------------------------
@@ -81,6 +82,11 @@ top = cp[cp["rank"] <= 12][["gwcode", "period", "deaths", "peak_year", "us_new_c
 top_rows = [[int(r.gwcode), r.period, int(r.deaths), nint(r.peak_year), int(r.us_new_cases), int(r.us_party_years), int(r.rank)]
             for r in top.itertuples()]
 
+# Who the US sanctioned each year: one compact row per case x target x year (in force, or lifted that year)
+ACT_COLS = ["year", "country", "case", "status", "begin", "end", "types", "descr_trade", "objective", "success",
+            "co_senders", "deaths"]
+act_rows = active[ACT_COLS].astype(object).where(active[ACT_COLS].notna(), None).values.tolist()
+
 payload = {
     "built": date.today().isoformat(),
     "years": years.astype(object).where(years.notna(), None).to_dict("records"),
@@ -93,6 +99,8 @@ payload = {
     "top": top_rows,
     "cases": cases.astype(object).where(cases.notna(), None).to_dict("records"),
     "usconf": usconf.to_dict("records"),
+    "act_cols": ACT_COLS,
+    "act": act_rows,
 }
 blob = json.dumps(payload, separators=(",", ":"), default=lambda o: o.item() if hasattr(o, "item") else str(o))
 blob = blob.replace("</", "<\\/")
