@@ -25,8 +25,14 @@ years 1991–2019). Sanctions = **new** GSDB cases (flows), violence = UCDP orga
 
 | Path | Status |
 |---|---|
-| `~/Documents/LMU_Life/RA_Work_Sunde/sanctions and violence` | **ORIGINAL — never modify.** |
-| `~/Documents/LMU_Life/RA_Work_Sunde/sanctions and violence - working copy` | **All work happens here.** |
+| `~/Documents/LMU_Life/work/RA_Work_Sunde/sanctions and violence` | **ORIGINAL — never modify.** |
+| `~/Documents/LMU_Life/work/RA_Work_Sunde/sanctions and violence - working copy` | **All work happens here.** |
+| `~/Documents/LMU_Life/work/RA_Work_Sunde/sanctions and violence - dvc storage` | DVC storage (set in `.dvc/config.local`, not committed). |
+
+Moved from `LMU_Life/RA_Work_Sunde/` to `LMU_Life/work/RA_Work_Sunde/` (16 Nov 2026). Scripts find the project root
+themselves (`Path(__file__).parents`, `here::here()`), so a move only breaks **machine-local absolute paths**: the
+`.venv` (rebuild: `rm -rf .venv && uv sync`) and the DVC storage URL (`uv run dvc remote modify --local storage url <path>`,
+then `uv run dvc status -c`). Both fixed on 16 Nov.
 
 ## 3. Layout of the working copy
 
@@ -269,9 +275,8 @@ hand with `fixest::feols` and compare.
 
 ## 12. Start here next session (written 16 Nov 2026, evening)
 
-**State:** all work committed and merged into `main` (not pushed); `data/clean` stored with DVC (`data/clean.dvc`).
-Note: the `.venv/bin/dvc` launcher points to the old project path (before the move to `LMU_Life/work/`), so
-`master.py --dvc` fails; use `uv run python -m dvc add <path>` / `uv run python -m dvc push`, or reinstall dvc in the venv.
+**State:** all work committed, merged into `main` and pushed to GitHub; `data/clean` stored with DVC (storage and
+cache in sync). Project folder moved under `LMU_Life/work/` — venv rebuilt and DVC storage path updated (section 2).
 
 **The US result as it stands** (details: `empirics/notes/21_us_robustness.md`, `22_us_matching.md`, `20_peace_process_lp.md`):
 - Base (D11): LP, new US cases w/o ICC 685, log(1 + UCDP deaths per 100k), shock second, 2 lags, state + year FE,
