@@ -275,8 +275,9 @@ hand with `fixest::feols` and compare.
 
 ## 12. Start here next session (written 16 Nov 2026, evening)
 
-**State:** all work committed, merged into `main` and pushed to GitHub; `data/clean` stored with DVC (storage and
-cache in sync). Project folder moved under `LMU_Life/work/` — venv rebuilt and DVC storage path updated (section 2).
+**State:** all work committed and merged into `main` (push with `git push origin main` if `git status` says ahead);
+`data/clean` stored with DVC (storage and cache in sync). **Update report for the advisor:**
+`Writing/update_reports/2026-11-16/report.pdf` (12 pages; all results of 16 Nov). Project folder moved under `LMU_Life/work/` — venv rebuilt and DVC storage path updated (section 2).
 
 **The US result as it stands** (details: `empirics/notes/21_us_robustness.md`, `22_us_matching.md`, `20_peace_process_lp.md`):
 - Base (D11): LP, new US cases w/o ICC 685, log(1 + UCDP deaths per 100k), shock second, 2 lags, state + year FE,
@@ -291,6 +292,13 @@ cache in sync). Project folder moved under `LMU_Life/work/` — venv rebuilt and
   later rebound (n.s.) and, **within wars, an effect fading from ≈ −0.5 (1990s shocks) to ≈ 0 (2010s)** — the LP
   within wars is flat across decades. Unresolved.
 - Not causal: selection on observables throughout (user agreed: FE do not handle time-varying confounding).
+- Propensity-score matching with the **lecture's matching estimand** (23; β_M = ∫[E(Y|D=1,x) − E(Y|D=0,x)] dF_X(x) =
+  ATE, plus ATT/ATC; NN on the logit within year, with/without 0.2 SD caliper; subclassification): all war estimates
+  negative (−0.02 to −0.27), none significant; all-state-years ATE driven by extrapolated ATC. ATT is the relevant estimand.
+- **Clean events:** controls cannot have a US case in t−1..t−2, so both matching designs (22, 23) estimate the effect
+  of a US sanction **after ≥ 2 years without one** (22 had dropped the others implicitly; notes 22 corrected).
+- How the user's matching course frames it: matching on x with explicit weights; regression weights "ruin
+  interpretability". Explain designs in those terms (user asked twice how matching was done — be concrete).
 
 **Next session — first task (agreed with the user):** explain the LP vs matching differences by **weights**.
 The LP coefficient is a variance-weighted average of heterogeneous effects (weights ∝ p(x)(1−p(x)), Angrist 1998;
