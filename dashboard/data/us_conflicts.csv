@@ -1,0 +1,36 @@
+conflict_id,location,opponent,first_year,last_year,us_years,war_years,role,type,era
+235,"North Korea, South Korea",Government of South Korea,1950,1953,4,4,Secondary,Interstate,Cold War
+238,United States of America,Puerto Rican Nationalist Party,1950,1950,1,0,Primary,Extrasystemic,Cold War
+232,"China, Taiwan",Government of Taiwan,1954,1958,2,2,Secondary,Interstate,Cold War
+242,Cuba,Cuban Revolutionary Council,1961,1961,1,0,Secondary,Internationalized intrastate,Cold War
+249,South Vietnam,FNL,1962,1964,3,3,Secondary,Internationalized intrastate,Cold War
+262,Laos,Pathet Lao,1963,1973,11,11,Secondary,Internationalized intrastate,Cold War
+293,"South Vietnam, Vietnam (North Vietnam)",Government of Vietnam (North Vietnam),1965,1973,9,9,Secondary,Interstate,Cold War
+300,Cambodia (Kampuchea),KR,1970,1973,4,4,Secondary,Internationalized intrastate,Cold War
+260,Lebanon,"Amal, NSF",1983,1984,2,1,Secondary,Internationalized intrastate,Cold War
+350,"Grenada, United States of America",Government of United States of America,1983,1983,1,0,Primary,Interstate,Cold War
+368,"Panama, United States of America",Government of United States of America,1989,1989,1,0,Primary,Interstate,1989-99
+371,"Iraq, Kuwait",Government of Kuwait,1991,1991,1,1,Secondary,Interstate,1989-99
+412,Serbia (Yugoslavia),UCK,1999,1999,1,1,Secondary,Internationalized intrastate,1989-99
+13692,"Afghanistan, United Kingdom, United States of America","Government of United Kingdom, Government of United States of America",2001,2001,1,1,Primary,Interstate,2000-09
+418,United States of America,al-Qaida ,2001,2019,18,1,Primary,Internationalized intrastate,2000-09
+333,Afghanistan,Taleban,2003,2021,19,17,Secondary,Internationalized intrastate,2000-09
+420,"Australia, Iraq, United Kingdom, United States of America",Government of Iraq,2003,2003,1,1,Primary,Interstate,2000-09
+259,Iraq,IS,2004,2025,20,10,Secondary,Internationalized intrastate,2000-09
+230,Yemen (North Yemen),"Ansarallah, AQAP",2009,2014,6,4,Secondary,Internationalized intrastate,2000-09
+11347,Mali,JNIM,2013,2023,11,1,Secondary,Internationalized intrastate,2010-19
+416,Central African Republic,CPC,2014,2022,2,0,Secondary,Internationalized intrastate,2010-19
+15283,Central African Republic,FPRC,2015,2015,1,0,Secondary,Internationalized intrastate,2010-19
+372,Mali,CMA,2015,2015,1,0,Secondary,Internationalized intrastate,2010-19
+13637,Afghanistan,IS,2015,2021,7,4,Secondary,Internationalized intrastate,2010-19
+337,Somalia,Al-Shabaab,2015,2025,11,11,Secondary,Internationalized intrastate,2010-19
+13694,Libya,IS,2016,2019,4,1,Secondary,Internationalized intrastate,2010-19
+13639,Niger,IS,2017,2022,6,0,Secondary,Internationalized intrastate,2010-19
+14113,Mali,IS,2017,2023,7,0,Secondary,Internationalized intrastate,2010-19
+13646,Kenya,Al-Shabaab,2019,2021,3,0,Secondary,Internationalized intrastate,2010-19
+14197,Somalia,IS,2019,2025,4,0,Secondary,Internationalized intrastate,2010-19
+14609,"Iran, Israel",Government of Israel,2020,2025,6,1,Secondary,Interstate,2020-25
+430,Niger,JNIM,2021,2022,2,0,Secondary,Internationalized intrastate,2020-25
+16099,"United Kingdom, United States of America, Yemen (North Yemen)",Government of Yemen (North Yemen),2024,2025,2,0,Primary,Interstate,2020-25
+13604,Syria,IS,2025,2025,1,0,Secondary,Internationalized intrastate,2020-25
+13641,Nigeria,IS,2025,2025,1,1,Secondary,Internationalized intrastate,2020-25

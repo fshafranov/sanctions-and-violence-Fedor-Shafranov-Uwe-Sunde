@@ -1,0 +1,1000 @@
+<meta name="dash-one-writer">
+<style>
+.cd { display: grid; gap: var(--cds-gap-xl); }
+.cd-head h1 { font-family: var(--font-anthropic-serif); font-weight: 400; font-size: var(--cds-font-size-title); margin: 0; text-wrap: balance; }
+.cd-lede { color: var(--color-fg-muted); max-width: 72ch; margin: var(--cds-gap-sm) 0 0; }
+.cd-take { font-size: var(--cds-font-size-heading); max-width: 64ch; margin: var(--cds-gap-md) 0 0; line-height: 1.45; }
+.cd-take b { font-weight: var(--cds-font-weight-medium); font-variant-numeric: tabular-nums; }
+.cd-sec h2 { font-size: var(--cds-font-size-heading); font-weight: var(--cds-font-weight-medium); margin: 0 0 var(--cds-gap-xs); text-wrap: balance; }
+.cd-sub { color: var(--color-fg-muted); margin: 0 0 var(--cds-gap-md); max-width: 72ch; }
+.cd-card { background: var(--color-panel); border: 1px solid var(--color-border-line); border-radius: var(--cds-radius); padding: var(--cds-pad-lg); min-width: 0; }
+.cd-chart { position: relative; min-height: 280px; }
+.cd-chart.is-heat { min-height: 520px; }
+.cd-chart.is-bars { min-height: 360px; }
+.cd-legend { display: flex; flex-wrap: wrap; gap: var(--cds-gap-sm) var(--cds-gap-md); font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); margin: 0 0 var(--cds-gap-sm); }
+.cd-sw { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 6px; vertical-align: -1px; }
+.cd-sw.is-ring { background: transparent; border: 2px solid; width: 8px; height: 8px; }
+.cd-sw.is-dot { border-radius: 50%; width: 6px; height: 6px; background: var(--color-fg); vertical-align: 1px; }
+.cd-sw.is-line { height: 2px; width: 14px; vertical-align: 3px; }
+.cd-tip { position: absolute; pointer-events: none; background: var(--cds-surface-popover); border: 1px solid var(--cds-border); box-shadow: var(--cds-shadow-popover); border-radius: var(--cds-radius); padding: 8px 10px; font-size: var(--cds-font-size-caption); line-height: 1.5; white-space: nowrap; z-index: 5; font-variant-numeric: tabular-nums; }
+.cd-tip .cd-tt { font-weight: var(--cds-font-weight-medium); }
+.cd-tip .cd-tm { color: var(--cds-text-secondary); }
+.cd-svg text { fill: var(--cds-text-secondary); font-size: var(--cds-font-size-caption); font-family: var(--font-anthropic-sans); }
+.cd-svg .cd-axis path, .cd-svg .cd-axis line { stroke: var(--cds-chart-axis); }
+.cd-svg .cd-grid line { stroke: var(--cds-chart-grid); }
+.cd-svg .cd-axis text { fill: var(--cds-text-secondary); font-size: var(--cds-font-size-caption); }
+.cd-tabs { display: flex; flex-wrap: wrap; gap: var(--cds-gap-xs); margin: 0 0 var(--cds-gap-md); }
+.cd-tab { font: inherit; padding: 5px 12px; border-radius: 999px; border: 1px solid var(--color-border-line); background: var(--color-bg); color: var(--color-fg); cursor: pointer; font-variant-numeric: tabular-nums; }
+.cd-tab:hover { border-color: var(--color-fg-muted); }
+.cd-tab.is-on { background: var(--color-fg); color: var(--color-bg); border-color: var(--color-fg); }
+.cd-tab:focus-visible { outline: 2px solid var(--color-fg); outline-offset: 2px; }
+.cd-tablewrap { overflow-x: auto; }
+.cd-tablewrap.is-tall { max-height: 520px; overflow-y: auto; }
+.cd-table { border-collapse: collapse; width: 100%; font-variant-numeric: tabular-nums; }
+.cd-table th { text-align: left; font-weight: var(--cds-font-weight-medium); color: var(--color-fg-muted); font-size: var(--cds-font-size-caption); padding: 6px 10px; border-bottom: 1px solid var(--color-border-line); vertical-align: bottom; background: var(--color-panel); position: sticky; top: 0; }
+.cd-table td { padding: 6px 10px; border-bottom: 1px solid var(--color-border-line); vertical-align: top; }
+.cd-table .cd-n { text-align: right; white-space: nowrap; }
+.cd-pill { display: inline-block; padding: 1px 8px; border-radius: 999px; font-size: var(--cds-font-size-caption); border: 1px solid var(--color-border-line); white-space: nowrap; }
+.cd-pill.is-primary { border-color: var(--color-fg); }
+.cd-split { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 340px), 1fr)); gap: var(--cds-gap-lg); }
+.cd-bars { display: grid; gap: 10px; }
+.cd-bar-row { display: grid; gap: 3px; }
+.cd-bar-top { display: flex; justify-content: space-between; gap: var(--cds-gap-sm); align-items: baseline; flex-wrap: wrap; }
+.cd-bar-name { font-weight: var(--cds-font-weight-medium); }
+.cd-bar-meta { color: var(--color-fg-muted); font-size: var(--cds-font-size-caption); font-variant-numeric: tabular-nums; }
+.cd-bar-val { font-variant-numeric: tabular-nums; }
+.cd-bar-track { height: 8px; border-radius: 4px; background: var(--cds-chart-grid); overflow: hidden; }
+.cd-bar-fill { height: 100%; border-radius: 4px; }
+.cd-us { font-size: var(--cds-font-size-caption); font-variant-numeric: tabular-nums; }
+.cd-note { color: var(--color-fg-muted); font-size: var(--cds-font-size-caption); margin: var(--cds-gap-sm) 0 0; max-width: 80ch; }
+.cd-details summary { cursor: pointer; font-weight: var(--cds-font-weight-medium); }
+.cd-details dl { display: grid; gap: var(--cds-gap-sm); margin: var(--cds-gap-md) 0 0; max-width: 80ch; }
+.cd-details dt { font-weight: var(--cds-font-weight-medium); }
+.cd-details dd { margin: 0; color: var(--color-fg-muted); }
+.cd-controls { display: flex; flex-wrap: wrap; align-items: center; gap: var(--cds-gap-sm) var(--cds-gap-md); margin: 0 0 var(--cds-gap-md); }
+.cd-controls label { color: var(--color-fg-muted); font-size: var(--cds-font-size-caption); }
+.cd-year { font-family: var(--font-anthropic-serif); font-weight: 400; font-size: var(--cds-font-size-title); font-variant-numeric: tabular-nums; min-width: 3.2em; }
+.cd-range { flex: 1 1 220px; min-width: 0; accent-color: var(--color-fg); }
+.cd-btn { font: inherit; padding: 5px 14px; border-radius: 999px; border: 1px solid var(--color-border-line); background: var(--color-bg); color: var(--color-fg); cursor: pointer; }
+.cd-btn:hover { border-color: var(--color-fg-muted); }
+.cd-btn:focus-visible { outline: 2px solid var(--color-fg); outline-offset: 2px; }
+.cd-chart.is-drill { min-height: 380px; }
+.cd-chart.is-map { min-height: 300px; }
+.cd-chart.is-line { min-height: 220px; }
+.cd-chart.is-clickable svg { cursor: pointer; }
+.cd-maprow { display: grid; grid-template-columns: minmax(0, 3fr) minmax(min(100%, 220px), 1fr); gap: var(--cds-gap-lg); align-items: start; }
+@media (max-width: 720px) { .cd-maprow { grid-template-columns: minmax(0, 1fr); } }
+.cd-regions { display: grid; gap: 10px; }
+.cd-regions h3, .cd-drillhead h3 { font-size: var(--cds-font-size-body); font-weight: var(--cds-font-weight-medium); margin: 0; }
+.cd-drillhead { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: var(--cds-gap-sm); margin: var(--cds-gap-lg) 0 var(--cds-gap-sm); padding-top: var(--cds-gap-md); border-top: 1px solid var(--color-border-line); }
+.cd-scale { display: inline-flex; align-items: center; gap: 2px; }
+.cd-scale i { display: inline-block; width: 18px; height: 10px; }
+</style>
+
+<div class="cd" data-read lang="en">
+  <header class="cd-head" id="top">
+    <h1>Conflict dynamics and US involvement, 1989–2025</h1>
+    <p class="cd-lede">Which conflicts dominated each decade, how many the US fought in, and where it started sanction cases. Organized violence from UCDP (state-based, non-state and one-sided), conflicts from UCDP/PRIO v26.1, US sanction cases from GSDB V4 (without ICC case 685, as in the local projections).</p>
+    <p class="cd-take" id="takeaway">In 1989–99 an average of <b data-draw="pv" data-source="period_summary" data-field="avg_countries" data-where="period=1989-99">—</b> countries a year had at least 25 deaths from organized violence, against <b data-draw="pv" data-source="period_summary" data-field="avg_countries" data-where="period=2010-19">—</b> in 2010–19. The US started <b data-draw="pv" data-source="period_summary" data-field="us_cases_conflict" data-where="period=1989-99">—</b> sanction cases against countries already in conflict in 1989–99 and <b data-draw="pv" data-source="period_summary" data-field="us_cases_conflict" data-where="period=2010-19">—</b> in 2010–19, while it was itself a party to <b data-draw="pv" data-source="period_summary" data-field="us_conflict_years" data-where="period=1989-99">—</b> and <b data-draw="pv" data-source="period_summary" data-field="us_conflict_years" data-where="period=2010-19">—</b> conflict-years. Counting sanctions already in force, not only new cases, <b data-draw="pv" data-source="period_summary" data-field="us_force_cy_pct" data-where="period=1989-99">—</b>% of conflict country-years in 1989–99 were under a US sanction, against <b data-draw="pv" data-source="period_summary" data-field="us_force_cy_pct" data-where="period=2010-19">—</b>% in 2010–19.</p>
+  </header>
+
+  <section class="cd-sec" id="periods">
+    <h2>The four periods at a glance</h2>
+    <p class="cd-sub">Change in deaths compares the target's deaths the year before a US case starts with two years after, for cases against countries with at least 25 deaths the year before (one count per country-year). It is descriptive, with no counterfactual.</p>
+    <div class="cd-card cd-tablewrap">
+      <table class="cd-table" data-source="period_summary" data-row-key="period">
+        <thead><tr>
+          <th data-field="period">Period</th>
+          <th class="cd-n" data-field="deaths">Deaths, organized violence</th>
+          <th class="cd-n" data-field="avg_countries">Countries in conflict per year</th>
+          <th class="cd-n" data-field="wars_per_year">Wars per year (1,000+ deaths)</th>
+          <th class="cd-n" data-field="us_conflict_years">US conflict-years</th>
+          <th class="cd-n" data-field="us_cases">US sanction cases</th>
+          <th class="cd-n" data-field="us_cases_conflict">…against countries in conflict</th>
+          <th class="cd-n" data-field="us_conflict_obj">…with a conflict objective</th>
+          <th class="cd-n" data-field="us_force_cy_pct">Conflict country-years under a US sanction in force (%)</th>
+          <th class="cd-n" data-field="us_force_deaths_pct">Deaths in countries under a US sanction in force (%)</th>
+          <th class="cd-n" data-field="median_change_pct">Median change in target deaths, t−1 to t+2 (%)</th>
+        </tr></thead>
+        <tbody data-draw="ptable"></tbody>
+      </table>
+    </div>
+    <p class="cd-note">GSDB V4 ends in 2023, so sanction columns for 2020–25 cover 2020–23. UCDP organized violence starts in 1989, so cases started in 1989 have no "year before".</p>
+  </section>
+
+  <section class="cd-sec" id="violence-time">
+    <h2>Deaths from organized violence and new US sanction cases, per year</h2>
+    <p class="cd-sub">Bars stack the three UCDP violence types. Years past the axis are cut and labelled with their total. The lower panel counts new US sanction cases. Click a bar to see the countries behind that year, then click a country to see its timeline.</p>
+    <div class="cd-card">
+      <div class="cd-legend">
+        <span><i class="cd-sw" data-c="0"></i>State-based</span>
+        <span><i class="cd-sw" data-c="1"></i>Non-state</span>
+        <span><i class="cd-sw" data-c="2"></i>One-sided (violence against civilians)</span>
+        <span><i class="cd-sw" data-c="3"></i>New US sanction cases</span>
+      </div>
+      <div class="cd-chart is-clickable" id="chart-violence" data-draw="violence" data-source="year_violence"></div>
+
+      <div class="cd-drillhead" id="drill">
+        <h3>Countries behind <span data-draw="selyear">—</span></h3>
+        <span class="cd-bar-meta" data-draw="drillsum" data-source="year_violence">—</span>
+      </div>
+      <div class="cd-controls">
+        <label for="drill-year">Year</label>
+        <select class="dash-select" id="drill-year" aria-label="Year">
+          <option>1989</option><option>1990</option><option>1991</option><option>1992</option><option>1993</option><option>1994</option><option>1995</option><option>1996</option><option>1997</option><option>1998</option><option>1999</option><option>2000</option><option>2001</option><option>2002</option><option>2003</option><option>2004</option><option>2005</option><option>2006</option><option>2007</option><option>2008</option><option>2009</option><option>2010</option><option>2011</option><option>2012</option><option>2013</option><option>2014</option><option>2015</option><option>2016</option><option>2017</option><option>2018</option><option>2019</option><option>2020</option><option>2021</option><option>2022</option><option>2023</option><option>2024</option><option>2025</option>
+        </select>
+        <span class="cd-bar-meta">Top 15 countries by deaths. Hover for the breakdown, click a country for its timeline. A ring marks a US sanction in force, a dot a new US case, a US-colored label the US as a party.</span>
+      </div>
+      <div class="cd-chart is-drill is-clickable" id="chart-drill" data-draw="drill" data-source="country_year_all"></div>
+
+      <div class="cd-drillhead" id="country-detail">
+        <h3>Timeline: <span data-draw="selcountry">—</span></h3>
+        <span class="cd-legend">
+          <span><i class="cd-sw" data-c="0"></i>Deaths</span>
+          <span><i class="cd-sw" data-c="3" data-op="0.25"></i>US sanction in force</span>
+          <span><i class="cd-sw is-dot"></i>New US case</span>
+          <span><i class="cd-sw is-line" data-c="3"></i>US a party</span>
+        </span>
+      </div>
+      <div class="cd-chart is-line" id="chart-country" data-draw="cline" data-source="country_year_all"></div>
+    </div>
+  </section>
+
+  <section class="cd-sec" id="map">
+    <h2>Where people died, year by year</h2>
+    <p class="cd-sub">Deaths from organized violence by country, on a log scale that stays fixed across years so years can be compared. Drag the slider or press Play. The outline shows the US measure you pick. The year here is the same as in the chart above.</p>
+    <div class="cd-card">
+      <div class="cd-controls">
+        <span class="cd-year" data-draw="selyear">—</span>
+        <input type="range" class="cd-range" id="map-year" min="1989" max="2025" step="1" value="1994" aria-label="Year">
+        <button type="button" class="cd-btn" id="map-play">Play</button>
+        <button type="button" class="cd-btn" id="map-pause" hidden>Pause</button>
+        <label for="map-hl">Outline</label>
+        <select class="dash-select" id="map-hl" aria-label="Outline countries by">
+          <option value="force">US sanction in force</option>
+          <option value="new">New US sanction case</option>
+          <option value="party">US a party to a conflict there</option>
+          <option value="none">No outline</option>
+        </select>
+      </div>
+      <div class="cd-legend">
+        <span class="cd-scale"><i data-c="0" data-op="0.07"></i><i data-c="0" data-op="0.2"></i><i data-c="0" data-op="0.56"></i><i data-c="0" data-op="0.78"></i><i data-c="0" data-op="1"></i></span>
+        <span>1–24, 25, 1k, 10k, 100k+ deaths</span>
+        <span><i class="cd-sw is-ring" data-ring="3"></i>Outlined: the US measure picked above</span>
+        <span><i class="cd-sw" style="background: var(--cds-chart-grid)"></i>No deaths recorded</span>
+      </div>
+      <div class="cd-maprow">
+        <div class="cd-chart is-map is-clickable" id="chart-map" data-draw="map" data-source="country_year_all"></div>
+        <div class="cd-regions" id="regions">
+          <h3>Deaths by region, <span data-draw="selyear">—</span></h3>
+          <div data-draw="regions" data-source="region_year">—</div>
+        </div>
+      </div>
+      <p class="cd-note">Map: Natural Earth 1:110m. Small island states are not drawn. Before 2011 South Sudan is shown as part of Sudan, before 1993 Eritrea as part of Ethiopia, and before 2006 Serbia, Montenegro and Kosovo as Yugoslavia. UCDP places Israeli–Palestinian violence in Israel.</p>
+    </div>
+  </section>
+
+  <section class="cd-sec" id="conflicts-time">
+    <h2>Active conflicts and conflicts with the US as a party, 1946–2025</h2>
+    <p class="cd-sub">UCDP/PRIO state-based conflicts with at least 25 battle deaths in the year. The US is a primary party when it is side A or B, secondary when it sends troops to fight alongside one side.</p>
+    <div class="cd-card">
+      <div class="cd-legend">
+        <span><i class="cd-sw is-line" data-c="0"></i>All active conflicts</span>
+        <span><i class="cd-sw is-line" data-c="1"></i>Wars (1,000+ deaths)</span>
+        <span><i class="cd-sw" data-c="3"></i>US primary party</span>
+        <span><i class="cd-sw" data-c="3" data-op="0.45"></i>US secondary party</span>
+      </div>
+      <div class="cd-chart" id="chart-conflicts" data-draw="conflicts" data-source="conflicts_year"></div>
+    </div>
+  </section>
+
+  <section class="cd-sec" id="deadliest">
+    <h2>Deadliest countries in <span data-draw="selp">—</span></h2>
+    <p class="cd-sub">Top 12 countries by deaths from all organized violence in the period. Next to each: new US sanction cases against it and years in which the US was a party to a conflict on its territory.</p>
+    <div class="cd-tabs" role="group" aria-label="Period">
+      <button type="button" class="cd-tab is-on" id="tab-1989-99" data-period="1989-99" aria-pressed="true">1989–99</button>
+      <button type="button" class="cd-tab" id="tab-2000-09" data-period="2000-09" aria-pressed="false">2000–09</button>
+      <button type="button" class="cd-tab" id="tab-2010-19" data-period="2010-19" aria-pressed="false">2010–19</button>
+      <button type="button" class="cd-tab" id="tab-2020-25" data-period="2020-25" aria-pressed="false">2020–25</button>
+    </div>
+    <div class="cd-card">
+      <div class="cd-chart is-bars" id="chart-top" data-draw="topbars" data-source="country_period"></div>
+    </div>
+  </section>
+
+  <section class="cd-sec" id="heatmap">
+    <h2>Where the violence was, year by year</h2>
+    <p class="cd-sub">The 40 countries with the most deaths since 1989, ordered by the deaths-weighted middle year of their violence, so the 1990s conflicts sit at the top and the recent ones at the bottom. Darker cells mean more deaths (log scale).</p>
+    <div class="cd-card">
+      <div class="cd-legend">
+        <span><i class="cd-sw" data-c="0"></i>Deaths (darker = more)</span>
+        <span><i class="cd-sw is-dot"></i>New US sanction case</span>
+        <span><i class="cd-sw is-ring" data-ring="3"></i>US a party to a conflict there</span>
+      </div>
+      <div class="cd-chart is-heat" id="chart-heat" data-draw="heat" data-source="country_year"></div>
+    </div>
+  </section>
+
+  <section class="cd-sec" id="us-cases">
+    <h2>US sanction cases against countries in conflict, <span data-draw="selp">—</span></h2>
+    <p class="cd-sub">Cases starting in the period against a country with at least 25 deaths the year before, largest conflicts first. The period follows the buttons above.</p>
+    <div class="cd-card cd-tablewrap is-tall">
+      <table class="cd-table" data-source="us_cases" data-row-key="case,country">
+        <thead><tr>
+          <th data-field="country">Target</th>
+          <th class="cd-n" data-field="year">Start</th>
+          <th data-field="objective">Objective (GSDB)</th>
+          <th data-field="success">Outcome (GSDB)</th>
+          <th class="cd-n" data-field="deaths_before">Deaths t−1</th>
+          <th class="cd-n" data-field="deaths_start">Deaths t</th>
+          <th class="cd-n" data-field="deaths_after2">Deaths t+2</th>
+        </tr></thead>
+        <tbody data-draw="cases"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="cd-sec" id="us-conflicts">
+    <h2>Every UCDP conflict with the US as a party</h2>
+    <p class="cd-sub">From the Korean War to the strikes in Yemen. Since 2001 almost all US involvement is as a secondary party in internationalized civil wars against jihadist groups.</p>
+    <div class="cd-card cd-tablewrap">
+      <table class="cd-table" data-source="us_conflicts" data-row-key="conflict_id">
+        <thead><tr>
+          <th data-field="location">Location</th>
+          <th data-field="opponent">Opposing side (last year)</th>
+          <th class="cd-n" data-field="first_year">First</th>
+          <th class="cd-n" data-field="last_year">Last</th>
+          <th class="cd-n" data-field="us_years">US years</th>
+          <th class="cd-n" data-field="war_years">War years</th>
+          <th data-field="role">US role</th>
+          <th data-field="type">Type</th>
+        </tr></thead>
+        <tbody data-draw="usconf"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <details class="cd-details" id="notes">
+    <summary>Definitions and data</summary>
+    <dl>
+      <dt>Organized violence deaths</dt>
+      <dd>UCDP best estimate, summed over state-based conflict, non-state conflict and one-sided violence, by country of location. Covers 1989–2025.</dd>
+      <dt>Country in conflict</dt>
+      <dd>A country-year with at least 25 deaths from organized violence, the same threshold as the incidence variable in the analysis.</dd>
+      <dt>Conflicts and wars</dt>
+      <dd>UCDP/PRIO armed conflict v26.1: state-based conflicts with at least 25 battle deaths in the year; wars have 1,000 or more.</dd>
+      <dt>US as a party</dt>
+      <dd>The US (Gleditsch–Ward code 2) appears as side A or B (primary) or as a secondary warring party supporting one side with troops. In the heatmap the US counts as a party in a country when that country is among the conflict's locations.</dd>
+      <dt>US sanction cases</dt>
+      <dd>GSDB V4 cases with the US among the senders, counted in the year they start, without ICC case 685, the same shock as the US local projections. GSDB ends in 2023. UN cases are not counted as US cases, even where the US enforced them.</dd>
+      <dt>US sanction in force</dt>
+      <dd>The panel's us_sanction flag: at least one GSDB case with the US among the senders is active against the country that year. A new case is counted only in its start year and only for the state GSDB names as target.</dd>
+      <dt>Bosnia and the other Yugoslav successors</dt>
+      <dd>The 1991 US arms embargo on Yugoslavia (case 422) is dated to Yugoslavia, because Bosnia-Herzegovina enters the state system only in 1992. Following the project's attribution rules, Bosnia, Croatia, Slovenia and Macedonia carry it as an arms embargo in force until 1996, so Bosnia shows a US sanction in force in 1992–96 but no new US case. The trade sanctions of the Bosnian war (UN case 470, 1992) targeted Belgrade, which UCDP codes as a secondary party backing the Bosnian Serbs. UCDP never codes the US as a party to the Bosnian conflict. The 1999 NATO campaign appears under Serbia (Kosovo).</dd>
+      <dt>How the files were made</dt>
+      <dd>dashboard/build_dashboard_data.py in the project repository builds every file from the cleaned UCDP and GSDB data.</dd>
+    </dl>
+  </details>
+</div>
+
+<script src="world.js"></script>
+<script>
+window.cdState = { period: '1989-99', year: 1994, country: null, hl: 'force', timer: null };
+window.cdFmt = d3.format(',');
+window.cdPeriodLabel = (p) => p.replace('-', '–');
+window.cdNum = (v) => (v === null || v === undefined || v === '' ? null : +v);
+window.cdEnc = (s) => String(s).replace(/%/g, '%25').replace(/&/g, '%26').replace(/=/g, '%3D').replace(/,/g, '%2C');
+window.cdPretty = (s) => (s ? String(s).replace(/_/g, ' ').replace(/,/g, ', ') : '');
+window.cdCol = (i) => dash.colors[i % dash.colors.length];
+
+// Legend swatches take the series colors
+document.querySelectorAll('.cd-sw[data-c], .cd-scale [data-c]').forEach((el) => {
+  el.style.background = cdCol(+el.dataset.c);
+  if (el.dataset.op) el.style.opacity = el.dataset.op;
+});
+
+// One selected year and country, shared by the year chart, the drill-down, the timeline and the map
+window.cdSelectYear = (y) => {
+  cdState.year = Math.max(1989, Math.min(2025, +y));
+  document.querySelectorAll('#map-year, #drill-year').forEach((e) => { e.value = String(cdState.year); });
+  ['violence', 'selyear', 'drillsum', 'drill', 'selcountry', 'cline', 'map', 'regions'].forEach((n) => dash.draw(n));
+};
+window.cdSelectCountry = (gw) => {
+  cdState.country = gw;
+  ['drill', 'selcountry', 'cline', 'map'].forEach((n) => dash.draw(n));
+};
+document.querySelectorAll('#drill-year').forEach((e) => {
+  e.value = String(cdState.year);
+  e.addEventListener('change', () => cdSelectYear(e.value));
+});
+document.querySelectorAll('#map-year').forEach((e) => {
+  e.value = String(cdState.year);
+  e.addEventListener('input', () => cdSelectYear(e.value));
+});
+document.querySelectorAll('#map-hl').forEach((e) => {
+  e.addEventListener('change', () => { cdState.hl = e.value; dash.draw('map'); });
+});
+window.cdStop = () => {
+  if (cdState.timer) clearInterval(cdState.timer);
+  cdState.timer = null;
+  document.querySelectorAll('#map-play').forEach((b) => { b.hidden = false; });
+  document.querySelectorAll('#map-pause').forEach((b) => { b.hidden = true; });
+};
+document.querySelectorAll('#map-play').forEach((b) => b.addEventListener('click', () => {
+  if (cdState.year >= 2025) cdSelectYear(1989);
+  b.hidden = true;
+  document.querySelectorAll('#map-pause').forEach((p) => { p.hidden = false; });
+  cdState.timer = setInterval(() => {
+    if (cdState.year >= 2025) { cdStop(); return; }
+    cdSelectYear(cdState.year + 1);
+  }, 700);
+}));
+document.querySelectorAll('#map-pause').forEach((b) => b.addEventListener('click', () => cdStop()));
+
+// The country shown in the timeline: the one clicked, else the deadliest in the selected year
+window.cdCurrentCountry = () => {
+  const d = dash.data('country_year_all');
+  if (d.status !== 'ok') return null;
+  let gw = cdState.country;
+  if (gw === null) {
+    const yr = d.data.filter((r) => +r.year === cdState.year && +r.deaths > 0).sort((a, b) => +b.deaths - +a.deaths)[0];
+    gw = yr ? +yr.gwcode : null;
+  }
+  if (gw === null) return null;
+  const rows = d.data.filter((r) => +r.gwcode === gw);
+  return { gw, name: rows.length ? rows[0].country : '—', rows };
+};
+window.cdYesNo = (v) => (v === null || v === undefined || v === '' ? 'no GSDB data' : +v === 1 ? 'yes' : 'no');
+document.querySelectorAll('.cd-sw[data-ring]').forEach((el) => { el.style.borderColor = cdCol(+el.dataset.ring); });
+
+// Period buttons
+document.querySelectorAll('.cd-tab[data-period]').forEach((btn) => {
+  btn.addEventListener('click', () => {
+    cdState.period = btn.dataset.period;
+    document.querySelectorAll('.cd-tab[data-period]').forEach((b) => {
+      const on = b === btn;
+      b.classList.toggle('is-on', on);
+      b.setAttribute('aria-pressed', on ? 'true' : 'false');
+    });
+    dash.draw('selp'); dash.draw('topbars'); dash.draw('cases');
+  });
+});
+
+// Tooltip helper: called only inside drawings
+window.cdTip = (host) => {
+  const tip = document.createElement('div');
+  tip.className = 'cd-tip';
+  tip.hidden = true;
+  host.appendChild(tip);
+  return {
+    show(ev, title, lines) {
+      const t = document.createElement('div'); t.className = 'cd-tt'; t.textContent = title;
+      const rows = lines.map(([k, v]) => {
+        const r = document.createElement('div');
+        const a = document.createElement('span'); a.className = 'cd-tm'; a.textContent = k + ': ';
+        const b = document.createElement('span'); b.textContent = v;
+        r.append(a, b); return r;
+      });
+      tip.replaceChildren(t, ...rows);
+      tip.hidden = false;
+      const [x, y] = d3.pointer(ev, host);
+      const w = tip.offsetWidth, h = tip.offsetHeight, W = host.clientWidth;
+      let left = x + 14; if (left + w > W) left = Math.max(0, x - w - 14);
+      let top = y - h - 10; if (top < 0) top = y + 14;
+      tip.style.left = left + 'px'; tip.style.top = top + 'px';
+    },
+    hide() { tip.hidden = true; },
+  };
+};
+
+window.cdTextWidth = (svg, strings) => {
+  const g = svg.append('g').attr('class', 'cd-axis');
+  let w = 0;
+  strings.forEach((s) => { const t = g.append('text').text(s); w = Math.max(w, t.node().getComputedTextLength()); });
+  g.remove();
+  return w;
+};
+
+window.cdPlaceholder = (el, status) => {
+  el.textContent = status === 'error' ? 'Failed to load' : '—';
+};
+</script>
+
+<script>
+dash.calc('period_summary', {
+  title: 'Summary by period',
+  description: 'Deaths, conflict counts, US conflict-years and US sanction cases for 1989–99, 2000–09, 2010–19 and 2020–25.',
+  inputs: ['year_violence', 'conflicts_year', 'us_cases', 'country_year_all'],
+  fn: (years, conflicts, cases, countryYears) => {
+    const P = (y) => (y <= 1999 ? '1989-99' : y <= 2009 ? '2000-09' : y <= 2019 ? '2010-19' : '2020-25');
+    const num = (v) => (v === null || v === undefined || v === '' ? null : +v);
+    const mean = (a) => (a.length ? a.reduce((s, x) => s + x, 0) / a.length : null);
+    const median = (a) => {
+      if (!a.length) return null;
+      const s = [...a].sort((x, y) => x - y), m = Math.floor(s.length / 2);
+      return s.length % 2 ? s[m] : (s[m - 1] + s[m]) / 2;
+    };
+    return ['1989-99', '2000-09', '2010-19', '2020-25'].map((p) => {
+      const ys = years.filter((r) => P(+r.year) === p);
+      const cs = conflicts.filter((r) => +r.year >= 1989 && P(+r.year) === p);
+      const us = cases.filter((r) => r.period === p);
+      const inConf = us.filter((r) => num(r.deaths_before) !== null && num(r.deaths_before) >= 25);
+      const episodes = new Map();
+      inConf.forEach((r) => episodes.set(r.country + '|' + r.year, r));
+      const changes = [...episodes.values()]
+        .filter((r) => num(r.deaths_after2) !== null && num(r.deaths_before) > 0)
+        .map((r) => (num(r.deaths_after2) - num(r.deaths_before)) / num(r.deaths_before));
+      const med = median(changes);
+      // Conflict country-years (25+ deaths) with GSDB coverage, and the share under a US sanction in force
+      const conf = countryYears.filter((r) => P(+r.year) === p && +r.deaths >= 25 && num(r.us_sanction) !== null);
+      const underUS = conf.filter((r) => +r.us_sanction === 1);
+      const confDeaths = conf.reduce((s, r) => s + +r.deaths, 0);
+      return {
+        period: p,
+        deaths: ys.reduce((s, r) => s + +r.total, 0),
+        avg_countries: Math.round(mean(ys.map((r) => +r.countries_in_conflict)) * 10) / 10,
+        wars_per_year: Math.round(mean(cs.map((r) => +r.wars)) * 10) / 10,
+        us_conflict_years: cs.reduce((s, r) => s + +r.us_conflicts, 0),
+        us_cases: us.length,
+        us_cases_conflict: inConf.length,
+        us_conflict_obj: us.filter((r) => +r.conflict_obj === 1).length,
+        median_change_pct: med === null ? null : Math.round(med * 100),
+        us_force_cy_pct: conf.length ? Math.round((100 * underUS.length) / conf.length) : null,
+        us_force_deaths_pct: confDeaths ? Math.round((100 * underUS.reduce((s, r) => s + +r.deaths, 0)) / confDeaths) : null,
+      };
+    });
+  },
+});
+
+dash.calc('region_year', {
+  title: 'Deaths by region and year',
+  description: 'Organized violence deaths summed by UCDP region for each year, with the region\'s share of that year\'s total.',
+  inputs: ['country_year_all'],
+  fn: (countryYears) => {
+    const sums = new Map(), totals = new Map();
+    countryYears.forEach((r) => {
+      const d = +r.deaths;
+      if (!d) return;
+      const k = r.year + '|' + r.region;
+      sums.set(k, (sums.get(k) || 0) + d);
+      totals.set(r.year, (totals.get(r.year) || 0) + d);
+    });
+    return [...sums.entries()].map(([k, deaths]) => {
+      const [year, region] = k.split('|');
+      return { year: +year, region, deaths, share_pct: Math.round((100 * deaths) / totals.get(year)) };
+    }).sort((a, b) => a.year - b.year || b.deaths - a.deaths);
+  },
+});
+</script>
+
+<script>
+// Numbers in sentences
+dash.draw('pv', (el) => {
+  const d = dash.data('period_summary');
+  if (d.status !== 'ok' || !d.data) { el.textContent = '—'; return; }
+  const p = decodeURIComponent((el.dataset.where || '').split('=')[1] || '');
+  const row = d.data.find((r) => r.period === p);
+  const v = row ? row[el.dataset.field] : null;
+  el.textContent = v === null || v === undefined ? '—' : cdFmt(v);
+});
+
+dash.draw('selp', (el) => { el.textContent = cdPeriodLabel(cdState.period); });
+
+dash.draw('ptable', (tb) => {
+  const d = dash.data('period_summary');
+  if (d.status !== 'ok' || !d.data) { tb.replaceChildren(); return; }
+  const fields = ['period', 'deaths', 'avg_countries', 'wars_per_year', 'us_conflict_years', 'us_cases', 'us_cases_conflict', 'us_conflict_obj', 'us_force_cy_pct', 'us_force_deaths_pct', 'median_change_pct'];
+  tb.replaceChildren(...d.data.map((r) => {
+    const tr = document.createElement('tr');
+    fields.forEach((f, i) => {
+      const td = document.createElement('td');
+      if (i > 0) td.className = 'cd-n';
+      const v = r[f];
+      td.textContent = f === 'period' ? cdPeriodLabel(v)
+        : v === null ? '—'
+        : f === 'median_change_pct' ? (v > 0 ? '+' : '') + v
+        : cdFmt(v);
+      tr.appendChild(td);
+    });
+    tr.dataset.key = cdEnc(r.period);
+    return tr;
+  }));
+});
+</script>
+
+<script>
+dash.draw('violence', (el) => {
+  const d = dash.data('year_violence');
+  if (d.status !== 'ok') { cdPlaceholder(el, d.status); return; }
+  el.replaceChildren();
+  const rows = d.data.map((r) => ({
+    year: +r.year, sb: +r.state_based, ns: +r.non_state, os: +r.one_sided, total: +r.total,
+    cic: +r.countries_in_conflict, us: cdNum(r.us_new_cases), usc: cdNum(r.us_targets_in_conflict),
+  }));
+  const W = el.clientWidth;
+  const H1 = 240, gap = 28, H2 = 84, top = 22, bottom = 22;
+  const H = top + H1 + gap + H2 + bottom;
+  const svg = d3.select(el).append('svg').attr('class', 'cd-svg').attr('width', W).attr('height', H)
+    .attr('role', 'img').attr('aria-label', 'Stacked bars of organized violence deaths per year 1989 to 2025 by type, with new US sanction cases per year below');
+  const totals = rows.map((r) => r.total).sort((a, b) => b - a);
+  const cap = totals[0] > totals[1] * 1.5 ? totals[1] * 1.15 : totals[0] * 1.05;
+  const y1 = d3.scaleLinear().domain([0, cap]).nice().range([top + H1, top]);
+  const usMax = d3.max(rows, (r) => r.us) || 1;
+  const y2 = d3.scaleLinear().domain([0, usMax]).nice().range([top + H1 + gap + H2, top + H1 + gap]);
+  const kfmt = (v) => (v >= 1000 ? d3.format('~s')(v).replace('k', 'k') : String(v));
+  const left = Math.ceil(cdTextWidth(svg, y1.ticks(4).map(kfmt).concat(y2.ticks(3).map(String)))) + 10;
+  const x = d3.scaleBand().domain(rows.map((r) => r.year)).range([left, W - 4]).padding(0.18);
+
+  // Period bands
+  const bands = [[1989, 1999], [2000, 2009], [2010, 2019], [2020, 2025]];
+  bands.forEach(([a, b], i) => {
+    const x0 = x(a) - (x.step() * x.padding()) / 2, x1 = x(b) + x.bandwidth() + (x.step() * x.padding()) / 2;
+    if (i % 2 === 0) svg.append('rect').attr('x', x0).attr('y', top - 18).attr('width', x1 - x0).attr('height', H - top - bottom + 18)
+      .attr('fill', 'var(--color-fg)').attr('fill-opacity', 0.035);
+    const t = svg.append('text').attr('y', top - 6).text(`${a}–${String(b).slice(2)}`);
+    if (t.node().getComputedTextLength() > x1 - x0 - 6) t.text(`${String(a).slice(2)}–${String(b).slice(2)}`);
+    const tw = t.node().getComputedTextLength();
+    t.attr('x', Math.min(x0 + 4, W - 2 - tw));
+  });
+
+  const grid = svg.append('g').attr('class', 'cd-grid');
+  y1.ticks(4).forEach((t) => grid.append('line').attr('x1', left).attr('x2', W - 4).attr('y1', y1(t)).attr('y2', y1(t)));
+  svg.append('g').attr('class', 'cd-axis').attr('transform', `translate(${left},0)`)
+    .call(d3.axisLeft(y1).ticks(4).tickFormat(kfmt).tickSize(0).tickPadding(6)).call((g) => g.select('.domain').remove());
+  svg.append('g').attr('class', 'cd-axis').attr('transform', `translate(${left},0)`)
+    .call(d3.axisLeft(y2).ticks(3).tickSize(0).tickPadding(6)).call((g) => g.select('.domain').remove());
+  y2.ticks(3).forEach((t) => grid.append('line').attr('x1', left).attr('x2', W - 4).attr('y1', y2(t)).attr('y2', y2(t)));
+
+  const keys = ['sb', 'ns', 'os'];
+  const stack = d3.stack().keys(keys)(rows);
+  stack.forEach((layer, i) => {
+    svg.append('g').selectAll('rect').data(layer).join('rect')
+      .attr('x', (s) => x(s.data.year)).attr('width', x.bandwidth())
+      .attr('y', (s) => y1(Math.min(s[1], cap)))
+      .attr('height', (s) => Math.max(0, y1(Math.min(s[0], cap)) - y1(Math.min(s[1], cap))))
+      .style('fill', cdCol(i));
+  });
+  rows.filter((r) => r.total > cap).forEach((r) => {
+    svg.append('text').attr('x', x(r.year) + x.bandwidth() / 2 + 4).attr('y', y1(cap) + 12)
+      .attr('text-anchor', 'start').style('fill', 'var(--color-fg)')
+      .text(`${r.year}: ${d3.format('.3s')(r.total)} ↑`);
+  });
+  svg.append('g').selectAll('rect').data(rows.filter((r) => r.us !== null)).join('rect')
+    .attr('x', (r) => x(r.year)).attr('width', x.bandwidth())
+    .attr('y', (r) => y2(r.us)).attr('height', (r) => y2(0) - y2(r.us)).style('fill', cdCol(3));
+
+  const every = W < 520 ? 10 : 5;
+  svg.append('g').attr('class', 'cd-axis').attr('transform', `translate(0,${top + H1 + gap + H2})`)
+    .call(d3.axisBottom(x).tickValues(rows.map((r) => r.year).filter((y) => y % every === 0)).tickSize(3));
+
+  if (x(cdState.year) !== undefined) {
+    svg.append('rect').attr('x', x(cdState.year) - 2).attr('width', x.bandwidth() + 4)
+      .attr('y', top - 2).attr('height', H1 + gap + H2 + 4).attr('rx', 3)
+      .attr('fill', 'none').style('stroke', 'var(--color-fg)').attr('stroke-width', 1.5).attr('pointer-events', 'none');
+  }
+
+  const tip = cdTip(el);
+  svg.append('g').selectAll('rect').data(rows).join('rect')
+    .attr('x', (r) => x(r.year) - (x.step() * x.padding()) / 2).attr('width', x.step())
+    .attr('y', top).attr('height', H1 + gap + H2).attr('fill', 'transparent')
+    .on('click', (ev, r) => { cdState.country = null; cdSelectYear(r.year); })
+    .on('mousemove', (ev, r) => tip.show(ev, String(r.year), [
+      ['State-based', cdFmt(r.sb)], ['Non-state', cdFmt(r.ns)], ['One-sided', cdFmt(r.os)], ['Total deaths', cdFmt(r.total)],
+      ['Countries in conflict', cdFmt(r.cic)],
+      ['New US sanction cases', r.us === null ? 'no GSDB data' : cdFmt(r.us)],
+      ['…targets already in conflict', r.usc === null ? 'no GSDB data' : cdFmt(r.usc)],
+    ]))
+    .on('mouseleave', () => tip.hide());
+});
+</script>
+
+<script>
+dash.draw('conflicts', (el) => {
+  const d = dash.data('conflicts_year');
+  if (d.status !== 'ok') { cdPlaceholder(el, d.status); return; }
+  el.replaceChildren();
+  const rows = d.data.map((r) => ({ year: +r.year, n: +r.conflicts, wars: +r.wars, intl: +r.internationalized, up: +r.us_primary, us2: +r.us_secondary, uw: +r.us_wars }));
+  const W = el.clientWidth, H = 280, top = 14, bottom = 22;
+  const svg = d3.select(el).append('svg').attr('class', 'cd-svg').attr('width', W).attr('height', H)
+    .attr('role', 'img').attr('aria-label', 'Lines of active conflicts and wars per year 1946 to 2025, with bars for conflicts with the US as a party');
+  const y = d3.scaleLinear().domain([0, d3.max(rows, (r) => r.n)]).nice().range([H - bottom, top]);
+  const left = Math.ceil(cdTextWidth(svg, y.ticks(5).map(String))) + 10;
+  const x = d3.scaleLinear().domain([1946, 2025]).range([left + 4, W - 6]);
+  const bw = Math.max(1, (x(1947) - x(1946)) * 0.75);
+
+  svg.append('rect').attr('x', x(1988.5)).attr('y', top).attr('width', x(1999.5) - x(1988.5)).attr('height', H - top - bottom)
+    .attr('fill', 'var(--color-fg)').attr('fill-opacity', 0.05);
+  svg.append('text').attr('x', x(1988.5) + 4).attr('y', top + 10).text('1989–99');
+
+  const grid = svg.append('g').attr('class', 'cd-grid');
+  y.ticks(5).forEach((t) => grid.append('line').attr('x1', left).attr('x2', W - 6).attr('y1', y(t)).attr('y2', y(t)));
+  svg.append('g').attr('class', 'cd-axis').attr('transform', `translate(${left},0)`)
+    .call(d3.axisLeft(y).ticks(5).tickSize(0).tickPadding(6)).call((g) => g.select('.domain').remove());
+  svg.append('g').attr('class', 'cd-axis').attr('transform', `translate(0,${H - bottom})`)
+    .call(d3.axisBottom(x).tickValues(d3.range(1950, 2026, W < 520 ? 20 : 10)).tickFormat(d3.format('d')).tickSize(3));
+
+  svg.append('g').selectAll('rect').data(rows).join('rect')
+    .attr('x', (r) => x(r.year) - bw / 2).attr('width', bw).attr('y', (r) => y(r.up)).attr('height', (r) => y(0) - y(r.up))
+    .style('fill', cdCol(3));
+  svg.append('g').selectAll('rect').data(rows).join('rect')
+    .attr('x', (r) => x(r.year) - bw / 2).attr('width', bw).attr('y', (r) => y(r.up + r.us2)).attr('height', (r) => y(r.up) - y(r.up + r.us2))
+    .style('fill', cdCol(3)).attr('fill-opacity', 0.45);
+
+  const line = (f) => d3.line().x((r) => x(r.year)).y((r) => y(f(r)));
+  svg.append('path').datum(rows).attr('d', line((r) => r.n)).attr('fill', 'none').style('stroke', cdCol(0)).attr('stroke-width', 2);
+  svg.append('path').datum(rows).attr('d', line((r) => r.wars)).attr('fill', 'none').style('stroke', cdCol(1)).attr('stroke-width', 2);
+
+  const tip = cdTip(el);
+  const dot = svg.append('circle').attr('r', 3.5).style('fill', cdCol(0)).attr('hidden', null).attr('opacity', 0);
+  svg.append('rect').attr('x', left).attr('y', top).attr('width', W - 6 - left).attr('height', H - top - bottom).attr('fill', 'transparent')
+    .on('mousemove', (ev) => {
+      const [mx] = d3.pointer(ev);
+      const yr = Math.max(1946, Math.min(2025, Math.round(x.invert(mx))));
+      const r = rows.find((q) => q.year === yr);
+      if (!r) return;
+      dot.attr('cx', x(r.year)).attr('cy', y(r.n)).attr('opacity', 1);
+      tip.show(ev, String(r.year), [
+        ['Active conflicts', cdFmt(r.n)], ['Wars', cdFmt(r.wars)], ['Internationalized intrastate', cdFmt(r.intl)],
+        ['US primary party', cdFmt(r.up)], ['US secondary party', cdFmt(r.us2)], ['US in wars', cdFmt(r.uw)],
+      ]);
+    })
+    .on('mouseleave', () => { tip.hide(); dot.attr('opacity', 0); });
+});
+</script>
+
+<script>
+dash.draw('topbars', (el) => {
+  const d = dash.data('country_period');
+  if (d.status !== 'ok') { cdPlaceholder(el, d.status); return; }
+  const p = cdState.period;
+  const rows = d.data.filter((r) => r.period === p && +r.rank <= 12).sort((a, b) => +a.rank - +b.rank);
+  const max = d3.max(rows, (r) => +r.deaths) || 1;
+  const wrap = document.createElement('div');
+  wrap.className = 'cd-bars';
+  rows.forEach((r) => {
+    const where = `country=${cdEnc(r.country)}&period=${cdEnc(r.period)}`;
+    const mk = (tag, cls, field, text) => {
+      const e = document.createElement(tag); e.className = cls; e.textContent = text;
+      if (field) { e.dataset.source = 'country_period'; e.dataset.field = field; e.dataset.where = where; }
+      return e;
+    };
+    const row = document.createElement('div'); row.className = 'cd-bar-row';
+    const topLine = document.createElement('div'); topLine.className = 'cd-bar-top';
+    const name = document.createElement('div');
+    name.append(mk('span', 'cd-bar-name', null, r.country), mk('span', 'cd-bar-meta', null, `  ${r.region}, peak `),
+      mk('span', 'cd-bar-meta', 'peak_year', r.peak_year ? String(Math.round(+r.peak_year)) : '—'));
+    const right = document.createElement('div');
+    right.append(mk('span', 'cd-bar-val', 'deaths', cdFmt(+r.deaths)), mk('span', 'cd-bar-meta', null, ' deaths'));
+    topLine.append(name, right);
+    const track = document.createElement('div'); track.className = 'cd-bar-track';
+    const fill = document.createElement('div'); fill.className = 'cd-bar-fill';
+    fill.style.width = (100 * +r.deaths / max).toFixed(2) + '%';
+    fill.style.background = cdCol(0);
+    track.appendChild(fill);
+    const us = document.createElement('div'); us.className = 'cd-us';
+    const nCases = +r.us_new_cases, nParty = +r.us_party_years;
+    const a = mk('span', '', 'us_new_cases', cdFmt(nCases));
+    const b = mk('span', '', 'us_party_years', cdFmt(nParty));
+    a.style.color = nCases > 0 ? cdCol(3) : 'var(--color-fg-muted)';
+    b.style.color = nParty > 0 ? cdCol(3) : 'var(--color-fg-muted)';
+    us.append(a, mk('span', 'cd-bar-meta', null, ' new US sanction cases · US a party in '), b, mk('span', 'cd-bar-meta', null, ' years'));
+    row.append(topLine, track, us);
+    wrap.appendChild(row);
+  });
+  el.replaceChildren(wrap);
+});
+</script>
+
+<script>
+dash.draw('heat', (el) => {
+  const d = dash.data('country_year');
+  if (d.status !== 'ok') { cdPlaceholder(el, d.status); return; }
+  el.replaceChildren();
+  const rows = d.data.map((r) => ({ c: r.country, region: r.region, year: +r.year, deaths: +r.deaths, us: +r.us_new_cases, force: cdNum(r.us_sanction), party: +r.us_party }));
+  const byC = d3.group(rows, (r) => r.c);
+  const order = [...byC.entries()].map(([c, rs]) => {
+    const tot = d3.sum(rs, (r) => r.deaths);
+    return { c, mid: d3.sum(rs, (r) => r.deaths * r.year) / (tot || 1) };
+  }).sort((a, b) => a.mid - b.mid).map((o) => o.c);
+  const years = d3.range(1989, 2026);
+  const W = el.clientWidth, rowH = 13, top = 22, bottom = 4;
+  const H = top + order.length * rowH + bottom;
+  const svg = d3.select(el).append('svg').attr('class', 'cd-svg').attr('width', W).attr('height', H)
+    .attr('role', 'img').attr('aria-label', 'Heatmap of organized violence deaths by country and year for the 40 deadliest countries, with US sanction cases and US conflict participation marked');
+  const left = Math.ceil(cdTextWidth(svg, order)) + 8;
+  const x = d3.scaleBand().domain(years).range([left, W - 2]).paddingInner(0.08);
+  const y = d3.scaleBand().domain(order).range([top, H - bottom]).paddingInner(0.12);
+  const maxD = d3.max(rows, (r) => r.deaths);
+  const op = d3.scaleLog().domain([25, maxD]).range([0.15, 1]).clamp(true);
+
+  svg.append('g').selectAll('text').data(order).join('text')
+    .attr('x', left - 6).attr('y', (c) => y(c) + y.bandwidth() / 2).attr('dy', '0.35em').attr('text-anchor', 'end').text((c) => c);
+  const every = W < 520 ? 10 : 5;
+  svg.append('g').selectAll('text').data(years.filter((yr) => yr % every === 0)).join('text')
+    .attr('x', (yr) => x(yr) + x.bandwidth() / 2).attr('y', top - 8).attr('text-anchor', 'middle').text((yr) => yr);
+
+  svg.append('g').selectAll('rect').data(rows).join('rect')
+    .attr('x', (r) => x(r.year)).attr('y', (r) => y(r.c)).attr('width', x.bandwidth()).attr('height', y.bandwidth())
+    .style('fill', (r) => (r.deaths > 0 ? cdCol(0) : 'var(--cds-chart-grid)'))
+    .attr('fill-opacity', (r) => (r.deaths > 0 ? (r.deaths < 25 ? 0.07 : op(r.deaths)) : 0.5))
+    .style('stroke', (r) => (r.party ? cdCol(3) : 'none')).attr('stroke-width', (r) => (r.party ? 1.6 : 0));
+  const rdot = Math.max(1.2, Math.min(2.4, x.bandwidth() / 4));
+  svg.append('g').selectAll('circle').data(rows.filter((r) => r.us > 0)).join('circle')
+    .attr('cx', (r) => x(r.year) + x.bandwidth() / 2).attr('cy', (r) => y(r.c) + y.bandwidth() / 2).attr('r', rdot)
+    .style('fill', 'var(--color-fg)');
+  [1999.5, 2009.5, 2019.5].forEach((b) => {
+    const xx = x(Math.ceil(b)) - (x.step() * 0.08) / 2;
+    svg.append('line').attr('x1', xx).attr('x2', xx).attr('y1', top - 2).attr('y2', H - bottom)
+      .style('stroke', 'var(--cds-chart-reference)').attr('stroke-dasharray', '2,2');
+  });
+
+  const tip = cdTip(el);
+  const idx = new Map(rows.map((r) => [r.c + '|' + r.year, r]));
+  svg.append('rect').attr('x', left).attr('y', top).attr('width', W - 2 - left).attr('height', H - top - bottom).attr('fill', 'transparent')
+    .on('mousemove', (ev) => {
+      const [mx, my] = d3.pointer(ev);
+      const yi = Math.floor((mx - left) / x.step()), ci = Math.floor((my - top) / y.step());
+      const r = idx.get(order[ci] + '|' + years[yi]);
+      if (!r) { tip.hide(); return; }
+      tip.show(ev, `${r.c}, ${r.year}`, [
+        ['Deaths', cdFmt(r.deaths)], ['New US sanction cases', cdFmt(r.us)],
+        ['US sanction in force', r.force === null ? 'no GSDB data' : r.force ? 'yes' : 'no'],
+        ['US a party to a conflict there', r.party ? 'yes' : 'no'],
+      ]);
+    })
+    .on('mouseleave', () => tip.hide());
+});
+</script>
+
+<script>
+dash.draw('cases', (tb) => {
+  const d = dash.data('us_cases');
+  if (d.status !== 'ok') { tb.replaceChildren(); return; }
+  const p = cdState.period;
+  const rows = d.data.filter((r) => r.period === p && cdNum(r.deaths_before) !== null && +r.deaths_before >= 25)
+    .sort((a, b) => +b.deaths_before - +a.deaths_before || +a.year - +b.year);
+  const num = (v) => (cdNum(v) === null ? '—' : cdFmt(+v));
+  tb.replaceChildren(...rows.map((r) => {
+    const tr = document.createElement('tr');
+    tr.dataset.key = `${cdEnc(r.case)},${cdEnc(r.country)}`;
+    const cells = [
+      [r.country, ''], [r.year, 'cd-n'], [cdPretty(r.objective), ''], [cdPretty(r.success), ''],
+      [num(r.deaths_before), 'cd-n'], [num(r.deaths_start), 'cd-n'], [num(r.deaths_after2), 'cd-n'],
+    ];
+    cells.forEach(([t, c]) => { const td = document.createElement('td'); td.className = c; td.textContent = t; tr.appendChild(td); });
+    const after = cdNum(r.deaths_after2), before = +r.deaths_before;
+    if (after !== null) tr.lastChild.style.color = after < before ? 'var(--color-ok)' : after > before ? 'var(--color-bad)' : '';
+    return tr;
+  }));
+});
+
+dash.draw('selyear', (el) => { el.textContent = String(cdState.year); });
+
+dash.draw('selcountry', (el) => {
+  const c = cdCurrentCountry();
+  el.textContent = c ? c.name : '—';
+});
+
+dash.draw('drillsum', (el) => {
+  const d = dash.data('year_violence');
+  const r = d.status === 'ok' ? d.data.find((q) => +q.year === cdState.year) : null;
+  if (!r) { el.textContent = '—'; return; }
+  const v = document.createElement('span');
+  v.dataset.source = 'year_violence'; v.dataset.field = 'total'; v.dataset.where = 'year=' + r.year;
+  v.textContent = cdFmt(+r.total);
+  el.replaceChildren(document.createTextNode('World total: '), v, document.createTextNode(' deaths'));
+});
+
+// Countries behind the selected year
+dash.draw('drill', (el) => {
+  const d = dash.data('country_year_all');
+  if (d.status !== 'ok') { cdPlaceholder(el, d.status); return; }
+  el.replaceChildren();
+  const yr = d.data.filter((r) => +r.year === cdState.year && +r.deaths > 0);
+  const world = yr.reduce((s, r) => s + +r.deaths, 0);
+  const rows = yr.sort((a, b) => +b.deaths - +a.deaths).slice(0, 15).map((r) => ({
+    gw: +r.gwcode, c: r.country, region: r.region, deaths: +r.deaths, sb: +r.state_based, ns: +r.non_state, os: +r.one_sided,
+    us: +r.us_new_cases, force: cdNum(r.us_sanction), party: +r.us_party,
+  }));
+  if (!rows.length) { el.textContent = 'No deaths recorded in this year.'; return; }
+  const W = el.clientWidth, rowH = 24, top = 2, bottom = 22;
+  const H = top + rows.length * rowH + bottom;
+  const svg = d3.select(el).append('svg').attr('class', 'cd-svg').attr('width', W).attr('height', H)
+    .attr('role', 'img').attr('aria-label', `Horizontal stacked bars of deaths by violence type for the 15 deadliest countries in ${cdState.year}`);
+  const labelW = Math.ceil(cdTextWidth(svg, rows.map((r) => r.c))) + 8;
+  const markW = 26, valueW = Math.ceil(cdTextWidth(svg, rows.map((r) => cdFmt(r.deaths)))) + 10;
+  const x0 = labelW + markW;
+  const x = d3.scaleLinear().domain([0, rows[0].deaths]).range([x0, Math.max(x0 + 40, W - valueW)]);
+  const y = d3.scaleBand().domain(rows.map((r) => r.gw)).range([top, H - bottom]).paddingInner(0.25);
+  const cur = cdCurrentCountry();
+
+  const grid = svg.append('g').attr('class', 'cd-grid');
+  x.ticks(W < 520 ? 3 : 5).forEach((t) => grid.append('line').attr('x1', x(t)).attr('x2', x(t)).attr('y1', top).attr('y2', H - bottom));
+  svg.append('g').attr('class', 'cd-axis').attr('transform', `translate(0,${H - bottom})`)
+    .call(d3.axisBottom(x).ticks(W < 520 ? 3 : 5).tickFormat(d3.format('~s')).tickSize(3)).call((g) => g.select('.domain').remove());
+
+  const rowG = svg.append('g').selectAll('g').data(rows).join('g').attr('transform', (r) => `translate(0,${y(r.gw)})`);
+  const bg = rowG.append('rect').attr('x', 0).attr('y', -3).attr('width', W).attr('height', y.bandwidth() + 6).attr('rx', 3)
+    .style('fill', 'var(--color-fg)').attr('fill-opacity', (r) => (cur && r.gw === cur.gw ? 0.07 : 0));
+  rowG.append('text').attr('x', labelW - 8).attr('y', y.bandwidth() / 2).attr('dy', '0.35em').attr('text-anchor', 'end')
+    .style('fill', (r) => (r.party ? cdCol(3) : 'var(--color-fg)'))
+    .style('font-weight', (r) => (cur && r.gw === cur.gw ? 'var(--cds-font-weight-medium)' : null)).text((r) => r.c);
+  rowG.filter((r) => r.force === 1).append('circle').attr('cx', labelW + 6).attr('cy', y.bandwidth() / 2).attr('r', 4.5)
+    .attr('fill', 'none').style('stroke', cdCol(3)).attr('stroke-width', 2);
+  rowG.filter((r) => r.us > 0).append('circle').attr('cx', labelW + 18).attr('cy', y.bandwidth() / 2).attr('r', 3)
+    .style('fill', 'var(--color-fg)');
+  ['sb', 'ns', 'os'].forEach((k, i) => {
+    rowG.append('rect').attr('y', 0).attr('height', y.bandwidth())
+      .attr('x', (r) => x(['sb', 'ns', 'os'].slice(0, i).reduce((s, kk) => s + r[kk], 0)))
+      .attr('width', (r) => Math.max(0, x(r[k]) - x(0)))
+      .style('fill', cdCol(i));
+  });
+  rowG.append('text').attr('x', (r) => x(r.deaths) + 6).attr('y', y.bandwidth() / 2).attr('dy', '0.35em')
+    .style('fill', 'var(--color-fg)').text((r) => cdFmt(r.deaths));
+
+  const tip = cdTip(el);
+  const pct = d3.format('.1%');
+  rowG.append('rect').attr('x', 0).attr('y', -3).attr('width', W).attr('height', y.bandwidth() + 6).attr('fill', 'transparent')
+    .on('mousemove', (ev, r) => {
+      bg.attr('fill-opacity', (q) => (q.gw === r.gw ? 0.1 : cur && q.gw === cur.gw ? 0.07 : 0));
+      tip.show(ev, `${r.c}, ${cdState.year}`, [
+        ['Total deaths', `${cdFmt(r.deaths)} (${pct(r.deaths / world)} of world)`],
+        ['State-based', cdFmt(r.sb)], ['Non-state', cdFmt(r.ns)], ['One-sided', cdFmt(r.os)],
+        ['US sanction in force', cdYesNo(r.force)], ['New US sanction cases', cdFmt(r.us)],
+        ['US a party to a conflict there', r.party ? 'yes' : 'no'],
+      ]);
+    })
+    .on('mouseleave', () => { tip.hide(); bg.attr('fill-opacity', (q) => (cur && q.gw === cur.gw ? 0.07 : 0)); })
+    .on('click', (ev, r) => cdSelectCountry(r.gw));
+});
+
+// One country's deaths over time, with US measures
+dash.draw('cline', (el) => {
+  const d = dash.data('country_year_all');
+  if (d.status !== 'ok') { cdPlaceholder(el, d.status); return; }
+  const c = cdCurrentCountry();
+  if (!c) { el.textContent = 'No country selected.'; return; }
+  el.replaceChildren();
+  const byYear = new Map(c.rows.map((r) => [+r.year, r]));
+  const rows = d3.range(1989, 2026).map((yr) => {
+    const r = byYear.get(yr);
+    return { year: yr, deaths: r ? +r.deaths : 0, sb: r ? +r.state_based : 0, ns: r ? +r.non_state : 0, os: r ? +r.one_sided : 0,
+      us: r ? +r.us_new_cases : 0, force: yr > 2023 ? null : r ? cdNum(r.us_sanction) : 0, party: r ? +r.us_party : 0 };
+  });
+  const W = el.clientWidth, H = 210, top = 10, bottom = 34;
+  const svg = d3.select(el).append('svg').attr('class', 'cd-svg').attr('width', W).attr('height', H)
+    .attr('role', 'img').attr('aria-label', `Line of organized violence deaths in ${c.name}, 1989 to 2025, with years under US sanctions shaded`);
+  const y = d3.scaleLinear().domain([0, d3.max(rows, (r) => r.deaths) || 1]).nice().range([H - bottom, top]);
+  const left = Math.ceil(cdTextWidth(svg, y.ticks(4).map(d3.format('~s')))) + 10;
+  const x = d3.scaleLinear().domain([1989, 2025]).range([left + 6, W - 18]);
+  const step = x(1990) - x(1989);
+
+  svg.append('g').selectAll('rect').data(rows.filter((r) => r.force === 1)).join('rect')
+    .attr('x', (r) => x(r.year) - step / 2).attr('width', step).attr('y', top).attr('height', H - bottom - top)
+    .style('fill', cdCol(3)).attr('fill-opacity', 0.16);
+  const grid = svg.append('g').attr('class', 'cd-grid');
+  y.ticks(4).forEach((t) => grid.append('line').attr('x1', left).attr('x2', W - 12).attr('y1', y(t)).attr('y2', y(t)));
+  svg.append('g').attr('class', 'cd-axis').attr('transform', `translate(${left},0)`)
+    .call(d3.axisLeft(y).ticks(4).tickFormat(d3.format('~s')).tickSize(0).tickPadding(6)).call((g) => g.select('.domain').remove());
+  svg.append('g').attr('class', 'cd-axis').attr('transform', `translate(0,${H - bottom + 14})`)
+    .call(d3.axisBottom(x).tickValues(d3.range(1990, 2026, W < 520 ? 10 : 5)).tickFormat(d3.format('d')).tickSize(3))
+    .call((g) => g.select('.domain').remove());
+
+  svg.append('line').attr('x1', x(cdState.year)).attr('x2', x(cdState.year)).attr('y1', top).attr('y2', H - bottom)
+    .style('stroke', 'var(--cds-chart-reference)').attr('stroke-dasharray', '3,3');
+  svg.append('path').datum(rows).attr('d', d3.area().x((r) => x(r.year)).y0(y(0)).y1((r) => y(r.deaths)))
+    .style('fill', cdCol(0)).attr('fill-opacity', 0.12);
+  svg.append('path').datum(rows).attr('d', d3.line().x((r) => x(r.year)).y((r) => y(r.deaths)))
+    .attr('fill', 'none').style('stroke', cdCol(0)).attr('stroke-width', 2);
+  const sel = rows.find((r) => r.year === cdState.year);
+  if (sel) svg.append('circle').attr('cx', x(sel.year)).attr('cy', y(sel.deaths)).attr('r', 4).style('fill', cdCol(0))
+    .style('stroke', 'var(--color-panel)').attr('stroke-width', 2);
+  svg.append('g').selectAll('rect').data(rows.filter((r) => r.party)).join('rect')
+    .attr('x', (r) => x(r.year) - step / 2).attr('width', step).attr('y', H - bottom + 3).attr('height', 4)
+    .style('fill', cdCol(3));
+  svg.append('g').selectAll('circle').data(rows.filter((r) => r.us > 0)).join('circle')
+    .attr('cx', (r) => x(r.year)).attr('cy', H - bottom + 5).attr('r', 3).style('fill', 'var(--color-fg)');
+
+  const tip = cdTip(el);
+  svg.append('rect').attr('x', left).attr('y', top).attr('width', W - 12 - left).attr('height', H - top - 10).attr('fill', 'transparent')
+    .on('mousemove', (ev) => {
+      const [mx] = d3.pointer(ev);
+      const r = rows.find((q) => q.year === Math.max(1989, Math.min(2025, Math.round(x.invert(mx)))));
+      if (!r) return;
+      tip.show(ev, `${c.name}, ${r.year}`, [
+        ['Deaths', cdFmt(r.deaths)], ['State-based', cdFmt(r.sb)], ['Non-state', cdFmt(r.ns)], ['One-sided', cdFmt(r.os)],
+        ['US sanction in force', cdYesNo(r.force)], ['New US sanction cases', cdFmt(r.us)], ['US a party', r.party ? 'yes' : 'no'],
+      ]);
+    })
+    .on('mouseleave', () => tip.hide())
+    .on('click', (ev) => { const [mx] = d3.pointer(ev); cdSelectYear(Math.round(x.invert(mx))); });
+});
+
+// World map for the selected year
+dash.draw('map', (el) => {
+  const d = dash.data('country_year_all');
+  if (d.status !== 'ok' || !window.cdWorld) { cdPlaceholder(el, window.cdWorld ? d.status : 'error'); return; }
+  el.replaceChildren();
+  const year = cdState.year;
+  const idx = new Map(d.data.filter((r) => +r.year === year).map((r) => [+r.gwcode, r]));
+  const gwFor = (f) => { const rule = f.properties.r.find(([, a, b]) => year >= a && year <= b); return rule ? rule[0] : null; };
+  const W = el.clientWidth;
+  const proj = d3.geoNaturalEarth1().fitWidth(W, cdWorld);
+  const path = d3.geoPath(proj);
+  const H = Math.ceil(path.bounds(cdWorld)[1][1]) + 2;
+  const svg = d3.select(el).append('svg').attr('class', 'cd-svg').attr('width', W).attr('height', H)
+    .attr('role', 'img').attr('aria-label', `World map of organized violence deaths by country in ${year}`);
+  const op = d3.scaleLog().domain([25, 100000]).range([0.2, 1]).clamp(true);
+  const cur = cdCurrentCountry();
+  const hl = (r) => {
+    if (!r) return false;
+    if (cdState.hl === 'force') return cdNum(r.us_sanction) === 1;
+    if (cdState.hl === 'new') return +r.us_new_cases > 0;
+    if (cdState.hl === 'party') return +r.us_party === 1;
+    return false;
+  };
+  const feats = cdWorld.features.map((f) => { const gw = gwFor(f); return { f, gw, r: gw === null ? null : idx.get(gw) || null }; });
+  feats.sort((a, b) => Number(hl(a.r)) - Number(hl(b.r)));
+  const tip = cdTip(el);
+  svg.append('g').selectAll('path').data(feats).join('path')
+    .attr('d', (o) => path(o.f))
+    .style('fill', (o) => (o.r && +o.r.deaths > 0 ? cdCol(0) : 'var(--cds-chart-grid)'))
+    .attr('fill-opacity', (o) => (o.r && +o.r.deaths > 0 ? (+o.r.deaths < 25 ? 0.07 : op(+o.r.deaths)) : 1))
+    .style('stroke', (o) => (hl(o.r) ? cdCol(3) : cur && o.gw === cur.gw ? 'var(--color-fg)' : 'var(--color-panel)'))
+    .attr('stroke-width', (o) => (hl(o.r) ? 1.6 : cur && o.gw === cur.gw ? 1.4 : 0.5))
+    .on('mousemove', (ev, o) => {
+      const r = o.r;
+      tip.show(ev, `${r ? r.country : o.f.properties.n}, ${year}`, r ? [
+        ['Deaths', cdFmt(+r.deaths)], ['State-based', cdFmt(+r.state_based)], ['Non-state', cdFmt(+r.non_state)], ['One-sided', cdFmt(+r.one_sided)],
+        ['US sanction in force', cdYesNo(r.us_sanction)], ['New US sanction cases', cdFmt(+r.us_new_cases)], ['US a party', +r.us_party ? 'yes' : 'no'],
+      ] : [['Deaths', o.gw === null ? 'not in UCDP' : '0'], ['US sanction in force', year > 2023 ? 'no GSDB data' : 'no']]);
+    })
+    .on('mouseleave', () => tip.hide())
+    .on('click', (ev, o) => { if (o.gw !== null) cdSelectCountry(o.gw); });
+});
+
+dash.draw('regions', (el) => {
+  const d = dash.data('region_year');
+  if (d.status !== 'ok' || !d.data) { el.textContent = '—'; return; }
+  const rows = d.data.filter((r) => r.year === cdState.year);
+  if (!rows.length) { el.textContent = 'No deaths recorded.'; return; }
+  const max = d3.max(rows, (r) => r.deaths);
+  const wrap = document.createElement('div'); wrap.className = 'cd-bars';
+  rows.forEach((r) => {
+    const where = `year=${r.year}&region=${cdEnc(r.region)}`;
+    const mk = (cls, field, text) => {
+      const e = document.createElement('span'); e.className = cls; e.textContent = text;
+      if (field) { e.dataset.source = 'region_year'; e.dataset.field = field; e.dataset.where = where; }
+      return e;
+    };
+    const row = document.createElement('div'); row.className = 'cd-bar-row';
+    const t = document.createElement('div'); t.className = 'cd-bar-top';
+    const right = document.createElement('div');
+    right.append(mk('cd-bar-val', 'deaths', cdFmt(r.deaths)), mk('cd-bar-meta', null, ' · '), mk('cd-bar-meta', 'share_pct', String(r.share_pct)), mk('cd-bar-meta', null, '%'));
+    t.append(mk('cd-bar-name', null, r.region), right);
+    const track = document.createElement('div'); track.className = 'cd-bar-track';
+    const fill = document.createElement('div'); fill.className = 'cd-bar-fill';
+    fill.style.width = ((100 * r.deaths) / max).toFixed(2) + '%'; fill.style.background = cdCol(0);
+    track.appendChild(fill);
+    row.append(t, track);
+    wrap.appendChild(row);
+  });
+  el.replaceChildren(wrap);
+});
+
+dash.draw('usconf', (tb) => {
+  const d = dash.data('us_conflicts');
+  if (d.status !== 'ok') { tb.replaceChildren(); return; }
+  tb.replaceChildren(...d.data.map((r) => {
+    const tr = document.createElement('tr');
+    tr.dataset.key = cdEnc(r.conflict_id);
+    const add = (t, c) => { const td = document.createElement('td'); td.className = c || ''; td.textContent = t; tr.appendChild(td); return td; };
+    add(r.location); add(r.opponent); add(r.first_year, 'cd-n'); add(r.last_year, 'cd-n'); add(r.us_years, 'cd-n'); add(r.war_years, 'cd-n');
+    const td = add('');
+    const pill = document.createElement('span'); pill.className = 'cd-pill' + (r.role === 'Primary' ? ' is-primary' : ''); pill.textContent = r.role;
+    td.appendChild(pill);
+    add(r.type);
+    return tr;
+  }));
+});
+</script>
