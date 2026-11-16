@@ -79,6 +79,7 @@ STEPS = [
     ("empirics",   "peace_process_lp",           "empirics/scripts/20_peace_process_lp.R"),      # US effect vs UCDP peace agreements / war terminations (needs clean_ucdp_peace, 01)
     ("empirics",   "us_robustness",              "empirics/scripts/21_us_robustness.R"),          # one robustness table for the US effect vs the frozen base D11 (needs 19, 20, doubly_robust dr_lp)
     ("empirics",   "us_matching",                "empirics/scripts/22_us_matching.R"),             # matched DiD for new US sanctions: path and effect by shock year (needs 21)
+    ("empirics",   "us_pscore_matching",         "empirics/scripts/23_us_pscore_matching.R"),     # propensity-score matching, lecture estimand (ATE) + ATT/ATC, NN and subclassification (bootstrap ~min)
     ("empirics",   "writing_tables",            "Writing/scripts/make_tables.py"),             # LaTeX tables for Writing/main.tex from the CSV results
     # exposure extension (added 2026-11-09; separate project, see exposure/README.md)
     ("exposure",   "exposure_lp",                "exposure/scripts/01_exposure_lp.R"),          # LP: shock x pre-sanction exposure to the sender (needs 01)

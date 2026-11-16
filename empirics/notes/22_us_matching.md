@@ -16,8 +16,11 @@ User request (16 Nov): a matching design instead of regression adjustment, and t
   differencing ≈ state FE. Effect = mean over events of treated minus mean of its controls; SE clustered by treated
   country, controls treated as fixed (no Abadie–Imbens matching-variance correction). Bias-adjusted version: intercept
   of the event-level difference on the treated-minus-control covariate gaps.
-- **Matched:** in conflict 72 of 104 US events (206 controls); all state-years 149 of 216 (421). Unmatched events have no
-  clean same-year control with similar deaths (mostly high-intensity wars).
+- **Matched:** in conflict 72 of 104 US events (206 controls); all state-years 149 of 216 (421). **Correction (found
+  in 23):** most unmatched events are US sanctions that follow another new US case in t−1..t−2 — no clean control can
+  have one, so the exact match drops them. The estimand is therefore the ATT of a new US sanction **after at least two
+  years without one** (clean events, as in LP-DiD), not of every US sanction. The rest are high-intensity wars with
+  no control within the deaths caliper.
 - **Balance:** deaths t, t−1, t−2 SMD 0.12–0.20; **deaths t−3, t−4 (not matched on) 0.05 / 0.00**; residual imbalance on
   sanction stock (0.51 in conflict), US sanction in force (0.31), democracy (−0.38) → bias adjustment.
 
