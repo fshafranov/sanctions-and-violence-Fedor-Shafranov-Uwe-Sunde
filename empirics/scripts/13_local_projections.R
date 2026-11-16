@@ -53,6 +53,7 @@
 #         region / period / leave-one-country-out breakdown of the UCDP US effect)
 #         empirics/results/tables/lp_us_objective_split.md/.csv (section 6: US effect by sanction objective)
 #         empirics/results/figures/fig25_lp_us_paths_by_sample.png, tables/lp_us_paths_by_sample.csv (section 7: full paths)
+#         empirics/results/tables/lp_us_over_time.md/.csv, figures/fig34_lp_us_beta_over_time.png (section 8: effect over time)
 # =============================================================================
 
 source(here::here("empirics", "scripts", "00_setup.R"))
@@ -593,3 +594,205 @@ fig25 <- ggplot(paths, aes(horizon, estimate, colour = shock, fill = shock)) +
                         ". Samples shrink with h (outcomes end 2019). Y-scales differ between panels.")) +
   theme_paper()
 save_figure(fig25, "fig25_lp_us_paths_by_sample.png", 13, 7)
+
+
+# =============================================================================
+# 8. The US effect over time (added 2026-11-16, user request after section 5)
+#
+# Section 5 splits the US shock by period (1991-99 / 2000-09 / 2010-19) and finds the decline only for 1990s (and,
+# weaker, 2000s) shocks. Here:
+#   (a) tests: are the period coefficients different (Wald, pairwise); shocks before vs from 2000; the period split
+#       without the five most influential states; leave one country out for the 1990s coefficient; separate samples
+#       by decade (own FE and lag coefficients); the period split among state-years in conflict in t-1
+#   (b) beta over time: rolling 9-year windows of shock years (shocks inside the window get their own coefficient,
+#       shocks outside a second one; one regression per window on the full sample, so FE and history coefficients
+#       are common) and a linear trend in the effect (shock x (year - 2005) / 10); all state-years and in conflict
+#   (c) why: characteristics of the US shock that changed between decades. Per shock-year: target in conflict in t-1;
+#       first US sanction (no US case in force in t-1, vs an increment to an existing regime); UN sanction in force
+#       on the target in t (US alongside the UN vs alone); arms embargo; conflict objective. Shares by decade, then
+#       the before/from-2000 gap with and without shock x characteristic terms: if the gap shrinks once a
+#       characteristic is allowed its own effect, the change in that characteristic is a candidate explanation.
+#       Descriptive decomposition, not identification (the characteristics are chosen by the sender too).
+# Same specification throughout: US cases without ICC, log(1 + UCDP deaths per 100k), shock second, state + year FE,
+# 2 lags of both; outcomes y(t+2) and cumulative y(t..t+3).
+# Output: tables/lp_us_over_time.md/.csv, figures/fig34_lp_us_beta_over_time.png
+# =============================================================================
+panel_flags <- read_panel() %>% select(gwcode, yr, us_sanction, un_sanction)
+case_flags <- new_cases %>%
+  filter(us == 1, case != ICC_CASE) %>%
+  mutate(conflict_objective = map_lgl(str_split(objective, ",\\s*"), ~ any(.x %in% CONFLICT_OBJECTIVES))) %>%
+  group_by(iso3c = country_iso3, yr = year) %>%
+  summarise(x_arms = sum(arms == 1), x_conflict_obj = sum(conflict_objective), .groups = "drop")
+ot <- loc_data %>%
+  left_join(case_flags, by = c("iso3c", "yr")) %>%
+  left_join(panel_flags, by = c("gwcode", "yr")) %>%
+  mutate(across(c(x_arms, x_conflict_obj), ~ replace_na(.x, 0L))) %>% arrange(gwcode, yr)
+ot$conflict_l1 <- lag_by_year(ot, "viol_inc", 1)
+ot$us_force_l1 <- lag_by_year(ot, "us_sanction", 1)
+X <- ot[[LOC_SHOCK]]
+ot <- ot %>% mutate(
+  shock_pre = X * (yr < 2000), shock_post = X * (yr >= 2000),
+  shock_trend = X * (yr - 2005) / 10,
+  x_in_conflict = X * (conflict_l1 %in% 1),
+  x_first_us = X * (us_force_l1 %in% 0),
+  x_with_un = X * (un_sanction %in% 1))
+stopifnot(all(ot$x_arms <= X), all(ot$x_conflict_obj <= X))
+OT_SAMPLES <- list("All state-years" = function(d) d, "In conflict in t-1" = function(d) filter(d, conflict_l1 %in% 1))
+
+ot_fit <- function(data, outcome, terms) {
+  s <- data %>% filter(in_window) %>% drop_na(all_of(c(outcome, LOC_SHOCK, loc_history)))
+  feols(as.formula(paste(outcome, "~", paste(c(terms, loc_history), collapse = " + "), "| gwcode + yr")),
+        data = s, cluster = ~ gwcode)
+}
+diff_p <- function(fit, a, b) {   # two-sided p of H0: beta_a = beta_b
+  v <- vcov(fit); z <- (coef(fit)[a] - coef(fit)[b]) / sqrt(v[a, a] + v[b, b] - 2 * v[a, b]); unname(2 * pnorm(-abs(z)))
+}
+ot_rows <- function(fit, terms, ...) {
+  ct <- coeftable(fit)
+  tibble(..., term = terms, estimate = ct[terms, 1], se = ct[terms, 2], p_value = ct[terms, 4], observations = nobs(fit))
+}
+
+# (a) tests ---------------------------------------------------------------------------------------------
+tests <- list(); test_p <- list()
+for (outcome in names(LOC_OUTCOMES)) {
+  f3 <- ot_fit(ot, outcome, PERIOD_SHOCKS)
+  test_p[[length(test_p) + 1]] <- tibble(outcome = outcome, test = c("All three periods equal", "1991-99 = 2000-09",
+                                                                     "1991-99 = 2010-19", "2000-09 = 2010-19"),
+    p_value = c(wald(f3, keep = "^shock_[0-9]", print = FALSE)$p, diff_p(f3, PERIOD_SHOCKS[1], PERIOD_SHOCKS[2]),
+                diff_p(f3, PERIOD_SHOCKS[1], PERIOD_SHOCKS[3]), diff_p(f3, PERIOD_SHOCKS[2], PERIOD_SHOCKS[3])))
+  f2 <- ot_fit(ot, outcome, c("shock_pre", "shock_post"))
+  tests[[length(tests) + 1]] <- ot_rows(f2, c("shock_pre", "shock_post"), outcome = outcome, check = "Before vs from 2000")
+  test_p[[length(test_p) + 1]] <- tibble(outcome = outcome, test = "Before 2000 = from 2000",
+                                         p_value = diff_p(f2, "shock_pre", "shock_post"))
+  tests[[length(tests) + 1]] <- ot_rows(ot_fit(filter(ot, !gwcode %in% top_dropped), outcome, PERIOD_SHOCKS),
+                                        PERIOD_SHOCKS, outcome = outcome, check = "Without the 5 most influential states")
+  tests[[length(tests) + 1]] <- ot_rows(ot_fit(filter(ot, conflict_l1 %in% 1), outcome, PERIOD_SHOCKS),
+                                        PERIOD_SHOCKS, outcome = outcome, check = "In conflict in t-1")
+  for (rng in list(c(1991, 1999), c(2000, 2009), c(2010, 2019), c(2000, 2019))) {
+    d <- mutate(ot, in_window = in_window & yr >= rng[1] & yr <= rng[2])
+    tests[[length(tests) + 1]] <- ot_rows(ot_fit(d, outcome, LOC_SHOCK), LOC_SHOCK, outcome = outcome,
+                                          check = paste0("Separate sample ", rng[1], "-", rng[2]))
+  }
+}
+tests <- bind_rows(tests) %>% mutate(term = recode(term, !!!SHOCK_NAMES, shock_pre = "1991-99", shock_post = "2000-19"))
+test_p <- bind_rows(test_p)
+
+states_90s <- ot %>% filter(in_window, .data[[PERIOD_SHOCKS[1]]] > 0) %>% distinct(gwcode, gw_name)
+loo_90s <- bind_rows(lapply(names(LOC_OUTCOMES), function(outcome) bind_rows(lapply(seq_len(nrow(states_90s)), function(i)
+  ot_rows(ot_fit(filter(ot, gwcode != states_90s$gwcode[i]), outcome, PERIOD_SHOCKS[1]), PERIOD_SHOCKS[1],
+          outcome = outcome, state = states_90s$gw_name[i])))))
+
+# (b) beta over time --------------------------------------------------------------------------------------
+ROLL_HALF <- 4                                     # window = centre +- 4 shock years
+ROLL_CENTRES <- (1991 + ROLL_HALF):(2019 - ROLL_HALF)
+rolling <- list(); trend_rows <- list()
+for (sample_name in names(OT_SAMPLES)) for (outcome in names(LOC_OUTCOMES)) {
+  for (centre in ROLL_CENTRES) {
+    d <- ot %>% mutate(shock_in = X * (abs(yr - centre) <= ROLL_HALF), shock_out = X - shock_in)
+    d <- OT_SAMPLES[[sample_name]](d)
+    fit <- ot_fit(d, outcome, c("shock_in", "shock_out"))
+    used <- d %>% filter(in_window) %>% drop_na(all_of(c(outcome, LOC_SHOCK, loc_history)))
+    rolling[[length(rolling) + 1]] <- ot_rows(fit, "shock_in", sample = sample_name, outcome = outcome, centre = centre) %>%
+      mutate(shock_years = sum(used$shock_in > 0))
+  }
+  trend <- ot_fit(OT_SAMPLES[[sample_name]](ot), outcome, c(LOC_SHOCK, "shock_trend"))
+  trend_rows[[length(trend_rows) + 1]] <- ot_rows(trend, c(LOC_SHOCK, "shock_trend"), outcome = outcome,
+                                        check = paste0("Linear trend in the effect (", sample_name, ")")) %>%
+    mutate(term = recode(term, !!!setNames(c("Effect in 2005", "Change per decade"), c(LOC_SHOCK, "shock_trend"))))
+}
+rolling <- bind_rows(rolling) %>% mutate(lower = estimate - 1.96 * se, upper = estimate + 1.96 * se)
+tests <- bind_rows(tests, bind_rows(trend_rows))
+
+# (c) characteristics of the shock --------------------------------------------------------------------------
+CHARS <- c(x_in_conflict = "Target in conflict in t-1", x_first_us = "First US sanction (none in force in t-1)",
+           x_with_un = "UN sanction in force on the target", x_arms = "Arms embargo", x_conflict_obj = "Conflict objective")
+char_shares <- ot %>% filter(in_window, X > 0) %>%
+  mutate(period = cut(yr, c(-Inf, 1999, 2009, Inf), labels = c("1991-99", "2000-09", "2010-19"))) %>%
+  group_by(period) %>%
+  summarise(shock_years = n(), cases = sum(.data[[LOC_SHOCK]]),
+            across(all_of(names(CHARS)), ~ sum(.x) / sum(.data[[LOC_SHOCK]])),
+            mean_violence_t1 = mean(viol_lev_l1, na.rm = TRUE), .groups = "drop")
+decomp <- list()
+for (outcome in names(LOC_OUTCOMES)) for (ch in c("none", names(CHARS), "all")) {
+  extra <- switch(ch, none = character(0), all = names(CHARS), ch)
+  fit <- ot_fit(ot, outcome, c("shock_pre", "shock_post", extra))
+  ct <- coeftable(fit)
+  decomp[[length(decomp) + 1]] <- tibble(
+    outcome = outcome, added = if (ch == "none") "Nothing (base)" else if (ch == "all") "All five" else CHARS[[ch]],
+    before_2000 = ct["shock_pre", 1], from_2000 = ct["shock_post", 1],
+    gap = ct["shock_pre", 1] - ct["shock_post", 1], p_gap = diff_p(fit, "shock_pre", "shock_post"),
+    char_effect = if (ch %in% names(CHARS)) ct[ch, 1] else NA_real_,
+    char_se = if (ch %in% names(CHARS)) ct[ch, 2] else NA_real_,
+    char_p = if (ch %in% names(CHARS)) ct[ch, 4] else NA_real_)
+}
+decomp <- bind_rows(decomp)
+
+write_csv(bind_rows(
+  mutate(tests, part = "a/b tests"), mutate(test_p, part = "a p-values"),
+  mutate(loo_90s, part = "a leave one out, 1990s coefficient"),
+  mutate(rolling, part = "b rolling windows"), mutate(decomp, part = "c decomposition")),
+  file.path(TABLES, "lp_us_over_time.csv"))
+
+# Figure: rolling beta with 95% band; bars = shock years in the window
+roll_plot <- rolling %>% mutate(outcome_label = factor(LOC_OUTCOMES[outcome], levels = LOC_OUTCOMES))
+roll_counts <- roll_plot %>% filter(centre %% 2 == 1) %>% group_by(outcome_label, centre) %>%
+  summarise(label = paste(shock_years[sample == "All state-years"], shock_years[sample == "In conflict in t-1"], sep = " / "),
+            .groups = "drop")
+fig34 <- ggplot(roll_plot, aes(centre, estimate, colour = sample, fill = sample)) +
+  geom_hline(yintercept = 0, colour = "#52514e", linewidth = 0.3) +
+  geom_ribbon(aes(ymin = lower, ymax = upper), alpha = 0.12, colour = NA) +
+  geom_line(linewidth = 0.7) + geom_point(size = 1.2) +
+  geom_text(data = roll_counts, aes(centre, -Inf, label = label), inherit.aes = FALSE, vjust = -0.6,
+            size = 2.5, colour = "#52514e") +
+  facet_wrap(~ outcome_label, scales = "free_y") +
+  scale_colour_manual(values = c("All state-years" = PAPER_COLOURS[["blue"]], "In conflict in t-1" = PAPER_COLOURS[["orange"]])) +
+  scale_fill_manual(values = c("All state-years" = PAPER_COLOURS[["blue"]], "In conflict in t-1" = PAPER_COLOURS[["orange"]])) +
+  scale_x_continuous(breaks = seq(1995, 2015, 2)) +
+  labs(title = "Effect of a new US sanction on deaths, by shock years (rolling 9-year windows)",
+       x = "Centre of the window of shock years", y = "Response of log(1 + UCDP deaths per 100k)",
+       colour = NULL, fill = NULL,
+       caption = paste0("One regression per window: shocks inside the window get their own coefficient, shocks outside a second one; ",
+                        "US cases without ICC case 685, shock second, ", VAR_LAGS, " lags, state and year FE.\n",
+                        "95% bands, SE clustered by state. Numbers at the bottom: shock years in the window, all state-years / in conflict ",
+                        "(every second window). Outcomes end 2019, so late windows lose shocks at the cumulative horizon.")) +
+  theme_paper() + theme(legend.position = "top")
+save_figure(fig34, "fig34_lp_us_beta_over_time.png", 12, 5.5)
+
+cell <- function(e, s, p) format_cell(e, s, p)
+writeLines(c(
+  "# The US effect over time", "",
+  paste0("Generated by `empirics/scripts/13_local_projections.R` (section 8) on ", format(Sys.time(), "%Y-%m-%d %H:%M"),
+         ". Figure `fig34_lp_us_beta_over_time.png`; all estimates `lp_us_over_time.csv`."), "",
+  "US cases without ICC case 685; response log(1 + UCDP deaths per 100k); shock second, state and year FE, 2 lags. ",
+  "Cells: coefficient (SE).", "",
+  "## (a) Are the periods different?", "",
+  to_markdown(test_p %>% mutate(outcome = LOC_OUTCOMES[outcome], p_value = sprintf("%.3f", p_value)) %>%
+                pivot_wider(names_from = outcome, values_from = p_value)),
+  to_markdown(tests %>% filter(!grepl("^Linear", check)) %>%
+                mutate(outcome = LOC_OUTCOMES[outcome], cell = cell(estimate, se, p_value)) %>%
+                select(check, shocks = term, outcome, cell) %>% pivot_wider(names_from = outcome, values_from = cell)),
+  "Leave one country out, 1990s coefficient (period split, every state with a 1990s shock dropped once):", "",
+  to_markdown(loo_90s %>% group_by(outcome = LOC_OUTCOMES[outcome]) %>%
+                summarise(states = n(), lowest = sprintf("%.3f", min(estimate)), highest = sprintf("%.3f", max(estimate)),
+                          largest_p = sprintf("%.3f", max(p_value)),
+                          closest_to_zero_without = state[which.max(estimate)], .groups = "drop")),
+  "## (b) Linear trend in the effect", "",
+  to_markdown(tests %>% filter(grepl("^Linear", check)) %>%
+                mutate(outcome = LOC_OUTCOMES[outcome], cell = cell(estimate, se, p_value)) %>%
+                select(check, term, outcome, cell) %>% pivot_wider(names_from = outcome, values_from = cell)),
+  "Rolling windows: see the figure and `lp_us_over_time.csv` (part `b rolling windows`).", "",
+  "## (c) What changed about US sanctions? Share of new US cases with each characteristic, by decade", "",
+  to_markdown(char_shares %>% mutate(across(all_of(names(CHARS)), ~ sprintf("%.2f", .x)),
+                                     mean_violence_t1 = sprintf("%.2f", mean_violence_t1)) %>%
+                rename_with(~ CHARS[.x], all_of(names(CHARS)))),
+  "Gap between shocks before and from 2000, with each characteristic allowed its own effect ",
+  "(characteristic = additional shock term counting the cases with it):", "",
+  to_markdown(decomp %>% mutate(outcome = LOC_OUTCOMES[outcome],
+                                before_2000 = sprintf("%.3f", before_2000), from_2000 = sprintf("%.3f", from_2000),
+                                gap = sprintf("%.3f", gap), p_gap = sprintf("%.3f", p_gap),
+                                characteristic_term = ifelse(is.na(char_effect), "", cell(char_effect, char_se, char_p))) %>%
+                select(outcome, added, before_2000, from_2000, gap, p_gap, characteristic_term)),
+  "*Notes:* * p<0.1, ** p<0.05, *** p<0.01. Shares are per case (target-in-conflict, first-US and UN flags are ",
+  "state-year properties counted for every case of that state-year). Five most influential states as in section 5."
+), file.path(TABLES, "lp_us_over_time.md"))
+cat("\nWrote", file.path(TABLES, "lp_us_over_time.md"), "\n")

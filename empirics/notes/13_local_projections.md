@@ -142,3 +142,42 @@ Sections 5–6 summarise samples by h = 2 and cumulative h = 0..3; this shows th
 **Reading.** In wars the decline after US sanctions is not reversed later (cumulative stays negative, imprecise);
 in the full sample the later positive per-year estimates come with the 2010s shocks and the non-war state-years.
 Still not identified causally (anticipated war ends, section 6).
+
+## The US effect over time (section 8, added 2026-11-16)
+
+Table `lp_us_over_time.md` / `.csv`, figure `fig34_lp_us_beta_over_time.png`. Same specification (US without ICC,
+levels, shock second, FE only). User question: did US sanctions reduce violence in the 1990s but not afterwards, and why?
+
+**Are the periods different?** All three period coefficients equal: rejected (p = 0.02 at h = 2, 0.02 cumulative).
+But pairwise only 1990s vs 2010s comes close (p = 0.05 / 0.11); 1990s vs 2000s cannot be told apart (p = 0.27 / 0.48).
+Pooled: shocks before 2000 −0.21** (cum. −0.42**), from 2000 −0.05 (cum. −0.09), difference p = 0.055 / 0.11.
+Separate samples by decade (own FE and lag coefficients): 1991–99 −0.18**, 2000–09 −0.09**, 2010–19 −0.07 (n.s.).
+
+**The 1990s coefficient is fragile to the few war endings.** Leave one country out keeps it significant (largest
+p 0.024 / 0.040; Yugoslavia moves it most, to −0.15). Without the five most influential states together it is −0.11*
+at h = 2 and −0.19 (p = 0.16) cumulative.
+
+**Rolling 9-year windows (fig34).** All state-years: β ≈ −0.1 to −0.2 for windows centred 1995–2006, then rises to
+≈ 0 from windows centred ~2009 (i.e. shocks after ~2005). In conflict in t−1: negative in every window
+(−0.1 to −0.45 at h = 2), widest bands; no upward drift. Linear trend in the effect: all state-years +0.095* per
+decade (h = 2); in conflict +0.05 (n.s.), cumulative −0.01. **Among wars, the decline after a US sanction does not
+fade over time**; the "no effect after 2000" result belongs to the all-state-years comparison.
+
+**What changed about US sanctions (shares of new US cases).** Arms embargoes 24 % → 8 % → 3 %; target in conflict
+55 % → 31 % → 50 %; first US sanction on the target 46 % → 34 % → 38 %; UN sanction in force 19 % → 18 % → 27 %;
+conflict objective 24 % → 27 % → 17 %; mean target violence in t−1 0.85 → 0.45 → 0.64.
+**None of these explains the gap**: allowing each its own effect leaves the before/from-2000 gap at −0.16 to −0.20
+(h = 2; base −0.17). The only characteristic with its own effect is UN backing (US case on a target under a UN
+sanction: extra −0.29**, cum. −0.69**), and its share rose, which would widen the gap, not close it. The collapse
+of US arms embargoes is not the explanation either (embargo term +0.11, n.s.).
+
+**Reading.** The data support "US sanctions were followed by fewer deaths in the 1990s, not after ~2005" only in
+the comparison with all states, and that 1990s effect leans on a few post-Cold-War war endings (Yugoslavia, Angola,
+Liberia, Iraq, Nepal). Compared with other wars, US sanctions in every decade are followed by declines of similar
+size (imprecise in the 2010s). The observable features of the sanctions (type, objective, novelty, UN backing,
+target in conflict) do not account for the change. Candidates not yet tested: (i) the kind of conflicts — the US
+itself was a party to many 2010s conflicts (UCDP/PRIO: 3 US conflict-years in 1989–99, 64 in 2010–19; dashboard),
+so a shock × US-party term is the next check; (ii) outcomes cut at 2019 (late shocks lose t+3); (iii) anticipation of
+war ends in the 1990s settlements (UCDP peace-agreement data).
+
+Panel VAR version of the period comparison: `19_us_pvar.md` (same estimates at h = 2, no period difference significant).

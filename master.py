@@ -53,6 +53,7 @@ STEPS = [
     ("cleaning",   "clean_sipri",                "data/scripts/cleaning/clean_sipri.py"),        # SIPRI arms transfers, dyadic + register
     ("cleaning",   "clean_hegre_forecasts",      "data/scripts/cleaning/clean_hegre_forecasts.py"), # Hegre et al. 2016 conflict model data (added 2026-11-16)
     ("cleaning",   "clean_views",                "data/scripts/cleaning/clean_views.py"),        # VIEWS archived forecasts -> country-year
+    ("cleaning",   "clean_ucdp_peace",           "data/scripts/cleaning/clean_ucdp_peace.R"),    # UCDP peace agreements + conflict terminations -> country-year (added 2026-11-16)
     ("processing", "process_exposure",           "data/scripts/processing/process_exposure.py"),   # trade/arms exposure (added 2026-11-09)
     ("processing", "process_sanctions_violence", "data/scripts/processing/process_sanctions_violence.py"),
     # empirics (all scripts source 00_setup.R; estimation scripts also source functions.R)
@@ -74,6 +75,10 @@ STEPS = [
     ("empirics",   "specification_curve",        "empirics/scripts/16_specification_curve.R"),  # specification curves from the grid (needs 15)
     ("empirics",   "acled_ucdp_comparison",      "empirics/scripts/17_acled_ucdp_comparison.R"), # descriptive: how ACLED and UCDP differ (coverage, agreement, events)
     ("empirics",   "africa",                     "empirics/scripts/18_africa.R"),                # Africa subanalysis: UCDP vs ACLED on the same state-years, GDELT, in conflict
+    ("empirics",   "us_pvar",                    "empirics/scripts/19_us_pvar.R"),               # panel VAR IRFs for US cases w/o ICC by period, vs LP (needs 13; bootstrap ~min)
+    ("empirics",   "peace_process_lp",           "empirics/scripts/20_peace_process_lp.R"),      # US effect vs UCDP peace agreements / war terminations (needs clean_ucdp_peace, 01)
+    ("empirics",   "us_robustness",              "empirics/scripts/21_us_robustness.R"),          # one robustness table for the US effect vs the frozen base D11 (needs 19, 20, doubly_robust dr_lp)
+    ("empirics",   "us_matching",                "empirics/scripts/22_us_matching.R"),             # matched DiD for new US sanctions: path and effect by shock year (needs 21)
     ("empirics",   "writing_tables",            "Writing/scripts/make_tables.py"),             # LaTeX tables for Writing/main.tex from the CSV results
     # exposure extension (added 2026-11-09; separate project, see exposure/README.md)
     ("exposure",   "exposure_lp",                "exposure/scripts/01_exposure_lp.R"),          # LP: shock x pre-sanction exposure to the sender (needs 01)
