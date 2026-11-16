@@ -1,6 +1,7 @@
 # AI context: sanctions & violence project (handoff for the next session)
 
-Last updated **9 Nov 2026, end of the second session**: script 13 sections 5–7 (where the US effect comes from),
+Last updated **16 Nov 2026**: conflict-forecast data (Hegre, VIEWS; cleaned, not merged) and the descriptive
+conflict-dynamics dashboard (`dashboard/`). Before that (9 Nov): script 13 sections 5–7 (where the US effect comes from),
 trade/FDI/arms data (WDI, IMF, SIPRI) with exposure variables in the panel, the separate `exposure/` project,
 ACLED vs UCDP comparison (17), Africa subanalysis (18). **Start with section 12 ("Start here next session").**
 Per-session change record: `SESSION_LOG.md` (git-ignored, project root). Read this first, then:
@@ -41,6 +42,10 @@ archive/                     old notebooks, legacy outputs, baseline/ — move f
 exposure/                    SEPARATE project (user, 9 Nov): trade/arms exposure analysis; own README, ANALYSIS_PLAN (E1–E3),
                              scripts/ (00_setup.R reuses empirics setup, writes to exposure/results/), notes/; stage `--stage exposure`.
                              Exposure variables stay in the main panel (option B).
+doubly_robust/               propensity-weighted LP of the US effect (DR1–DR7); notes/02_forecast_data_plan.md = forecasts as
+                             a propensity-score analogue (advisor, 16 Nov)
+dashboard/                   DESCRIPTIVE exploration page (UCDP violence, US as party, US sanctions), not in master.py;
+                             README has build order, live link, definitions and what it showed
 master.py                    runs everything; logs per step
 ```
 
@@ -261,7 +266,29 @@ Focus on **local projections** (the panel VAR seems to do worse in the panel set
 2017 and Escribà-Folch 2010 (substantive positioning). Suggested self-check: re-estimate one Table 1 equation by
 hand with `fixest::feols` and compare.
 
-## 12. Start here next session (written 9 Nov 2026, end of session 2)
+## 12. Start here next session (written 16 Nov 2026)
+
+**State:** all work committed and merged into `main` (not pushed). New since 9 Nov:
+- Conflict forecasts (advisor, 16 Nov): Hegre et al. 2016/2013 replication packages and VIEWS archived forecasts,
+  downloaded and cleaned to GW state-years in `data/clean/forecasts/` (`data/README.md` section 4d, H0–H6, V0–V5);
+  **not yet merged into the panel or used**. Plan and open choices: `doubly_robust/notes/02_forecast_data_plan.md`.
+- Dashboard (`dashboard/README.md`): live page https://claude.ai/artifact/Y319frVGvn6JgWuWZWLxf7 (plain Plotly; the
+  older Data-type version was laggy). Rebuild with the three `dashboard/build_*.py` scripts.
+
+**What the dashboard showed (descriptive, worth a sentence in the next report):**
+1. In 1989–99 only 46% of conflict country-years (31% of conflict deaths) had any US sanction in force, against 62% /
+   85% in 2010–19 and 78% / 94% in 2020–23. 1990s US cases more often hit not-yet-sanctioned conflicts; later a new
+   case is an increment on an existing regime. Fits the larger 1990s LP effect; a reading, not a test. Possible
+   check: LP with a "first US case against this target" vs "additional case" split, or controlling for US sanction
+   in force in t−1.
+2. The US was a party to only 3 conflict-years in 1989–99 (Panama, Gulf War, Kosovo) vs 64 in 2010–19.
+3. New-case counting misses Bosnia: US arms embargo 422 (1991) is dated to Yugoslavia, in force for Bosnia 1992–96;
+   UN case 470 not counted as US. Worth stating in the paper's data section.
+
+**Open (new):** decide how to use the forecasts (see plan note); dashboard: check phone/dark mode and the
+"Deadliest countries" chart height. Older open items below still stand.
+
+## 12a. Start here (written 9 Nov 2026, end of session 2)
 
 **State:** all work committed on `main` (last commits: exposure project, ACLED/UCDP comparison, Africa); `main` is
 ahead of GitHub (not pushed — push also refreshes the stale "Claude" entry in GitHub's contributor sidebar; the
