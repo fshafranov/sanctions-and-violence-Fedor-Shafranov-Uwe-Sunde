@@ -35,6 +35,9 @@ data/raw/ties/
 data/raw/wdi/
 data/raw/imf_imts/
 data/raw/sipri/
+data/raw/hegre_ssp/
+data/raw/hegre_isq/
+data/raw/views/
 data/logs/
 empirics/results/logs/
 exposure/results/logs/

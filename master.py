@@ -51,6 +51,8 @@ STEPS = [
     ("cleaning",   "clean_wdi",                  "data/scripts/cleaning/clean_wdi.py"),          # WDI trade/FDI/arms totals (added 2026-11-09)
     ("cleaning",   "clean_imf_trade",            "data/scripts/cleaning/clean_imf_trade.py"),    # IMF bilateral goods trade, dyadic
     ("cleaning",   "clean_sipri",                "data/scripts/cleaning/clean_sipri.py"),        # SIPRI arms transfers, dyadic + register
+    ("cleaning",   "clean_hegre_forecasts",      "data/scripts/cleaning/clean_hegre_forecasts.py"), # Hegre et al. 2016 conflict model data (added 2026-11-16)
+    ("cleaning",   "clean_views",                "data/scripts/cleaning/clean_views.py"),        # VIEWS archived forecasts -> country-year
     ("processing", "process_exposure",           "data/scripts/processing/process_exposure.py"),   # trade/arms exposure (added 2026-11-09)
     ("processing", "process_sanctions_violence", "data/scripts/processing/process_sanctions_violence.py"),
     # empirics (all scripts source 00_setup.R; estimation scripts also source functions.R)

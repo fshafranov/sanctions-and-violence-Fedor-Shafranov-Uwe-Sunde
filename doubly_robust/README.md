@@ -49,3 +49,9 @@ Timing: shock second (main) and shock first.
 | Script | Result | Notes |
 |---|---|---|
 | 01_dr_lp | The US result survives propensity weighting: IPWRA h = 2 −0.127*** (OLS −0.103**), in wars −0.284*** (OLS −0.274***). New US sanctions are hard to predict from the violence history (AUC 0.68–0.72), so overlap is good and trimming drops almost nothing. One placebo (violence at t−4, all state-years) is not balanced. | [notes/01](notes/01_dr_lp.md) |
+
+## Next: conflict forecasts (advisor, 16 Nov 2026)
+
+Use Hegre's conflict forecasts as a propensity-score analogue (predictable vs unpredictable conflict). Data options,
+recommendation and open decisions: [notes/02_forecast_data_plan.md](notes/02_forecast_data_plan.md); data in
+`data/README.md` section 4d.
