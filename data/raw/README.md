@@ -17,6 +17,7 @@
 | `ucdp_prio/` | `UcdpPrioConflict_v26_1.csv` | UCDP/PRIO Armed Conflict Dataset v26.1 | not used (clean_base.R uses peacesciencer's copy of the ACD) |
 | `states/` | `gwstates.csv`, `cowstates.csv`, `codelist_panel.csv` | exported from the R packages `states` and `countrycode` | not used |
 | `owid/` | deaths and death rates in armed conflicts | Our World in Data (UCDP-based) | not used |
+| `ucdp_peace/` | UCDP Peace Agreement v22.2 (xlsx), Conflict Termination v4-2024 (csv), codebooks, download manifest | `acquire_ucdp_peace.py` (2026-11-16) | `clean_ucdp_peace.R` → `data/clean/ucdp_peace/peace_cy.csv` (section 4e) |
 
 The state-year base (`clean_base.R`) has no raw file: it comes from the R package peacesciencer at run time.
 TODO: record download dates and URLs for each dataset.
