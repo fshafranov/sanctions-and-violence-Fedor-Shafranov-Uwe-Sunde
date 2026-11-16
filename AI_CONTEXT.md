@@ -1,9 +1,10 @@
 # AI context: sanctions & violence project (handoff for the next session)
 
-Last updated **16 Nov 2026**: conflict-forecast data (Hegre, VIEWS; cleaned, not merged) and the descriptive
-conflict-dynamics dashboard (`dashboard/`). Before that (9 Nov): script 13 sections 5–7 (where the US effect comes from),
-trade/FDI/arms data (WDI, IMF, SIPRI) with exposure variables in the panel, the separate `exposure/` project,
-ACLED vs UCDP comparison (17), Africa subanalysis (18). **Start with section 12 ("Start here next session").**
+Last updated **16 Nov 2026, evening**: the US effect worked through end to end — base specification frozen (D11),
+one robustness table + specification curve (21), noise/permutation and full paths (21 part B), panel VAR (19),
+peace-agreement checks with new UCDP data (20), matched DiD with the effect by shock year (22); dashboard panel
+"who the US sanctioned in a year". Earlier on 16 Nov: conflict-forecast data (Hegre, VIEWS) and the dashboard.
+**Start with section 12 ("Start here next session").**
 Per-session change record: `SESSION_LOG.md` (git-ignored, project root). Read this first, then:
 `empirics/notes/README.md` (headline findings + index of result notes),
 `empirics/notes/variable_coding_and_functions.md` (onset vs presence coding, the four functions, reading fig10), `empirics/ANALYSIS_PLAN.md` (design,
@@ -266,9 +267,42 @@ Focus on **local projections** (the panel VAR seems to do worse in the panel set
 2017 and Escribà-Folch 2010 (substantive positioning). Suggested self-check: re-estimate one Table 1 equation by
 hand with `fixest::feols` and compare.
 
-## 12. Start here next session (written 16 Nov 2026)
+## 12. Start here next session (written 16 Nov 2026, evening)
 
-**State:** all work committed and merged into `main` (not pushed). New since 9 Nov:
+**State:** all work committed and merged into `main` (not pushed); `data/clean` stored with DVC (`data/clean.dvc`).
+Note: the `.venv/bin/dvc` launcher points to the old project path (before the move to `LMU_Life/work/`), so
+`master.py --dvc` fails; use `uv run python -m dvc add <path>` / `uv run python -m dvc push`, or reinstall dvc in the venv.
+
+**The US result as it stands** (details: `empirics/notes/21_us_robustness.md`, `22_us_matching.md`, `20_peace_process_lp.md`):
+- Base (D11): LP, new US cases w/o ICC 685, log(1 + UCDP deaths per 100k), shock second, 2 lags, state + year FE,
+  no controls; all state-years and **in conflict in t−1**.
+- In wars: −0.25*** at h = 2 (≈ a third fewer deaths that year), dip h = 1–3, gone by h = 4–5; no pre-trend;
+  permutation p 0.003; all 192 state-FE specifications of the specification curve negative and significant;
+  survives peace-agreement controls; concentrated in sanctions with **no** peace process under way; no effect on
+  war termination; agreements make US sanctions less likely.
+- All state-years: −0.105*** but fragile (top-5 drop, shock first, post-2000 shocks remove it).
+- Depends on within-country comparison (region FE removes it).
+- Matched DiD (22, ATT, same-year clean controls): confirms the dip (wars −0.29**, bias-adj. −0.43**), but shows a
+  later rebound (n.s.) and, **within wars, an effect fading from ≈ −0.5 (1990s shocks) to ≈ 0 (2010s)** — the LP
+  within wars is flat across decades. Unresolved.
+- Not causal: selection on observables throughout (user agreed: FE do not handle time-varying confounding).
+
+**Next session — first task (agreed with the user):** explain the LP vs matching differences by **weights**.
+The LP coefficient is a variance-weighted average of heterogeneous effects (weights ∝ p(x)(1−p(x)), Angrist 1998;
+Angrist & Pischke ch. 3), matching is the ATT with equal weight per treated event (the user's lecture slide:
+β_M = ∫[E(Y|D=1,X=x) − E(Y|D=0,X=x)] dF_X(x); regression weights "ruin interpretability"). Plan: (1) compute each
+event's implicit LP weight (FWL: residualised shock) and compare with the matching weights by decade / country;
+(2) optionally a coarsened exact-cell matching estimator with explicit ATT weights. Then state estimands explicitly
+in the write-up (matching / IPWRA = interpretable estimands; LP = regression-weighted summary).
+
+**Other open items:** headline sample (wars vs all) — D11, to decide with the advisor; violence-type split (state-based
+/ non-state / one-sided) as mechanism; sensitivity analysis (Cinelli–Hazlett) for selection on observables; monthly
+timing with announcement dates; TIES (threats, ends 2005) not downloaded; Abadie–Imbens SEs for matching; dashboard
+phone/dark-mode check. Workflow rule (user): new checks = rows in `21_us_robustness.R` against D11, not new controls.
+
+## 12b. Start here (written 16 Nov 2026, morning)
+
+**State (morning):** New since 9 Nov:
 - Conflict forecasts (advisor, 16 Nov): Hegre et al. 2016/2013 replication packages and VIEWS archived forecasts,
   downloaded and cleaned to GW state-years in `data/clean/forecasts/` (`data/README.md` section 4d, H0–H6, V0–V5);
   **not yet merged into the panel or used**. Plan and open choices: `doubly_robust/notes/02_forecast_data_plan.md`.
