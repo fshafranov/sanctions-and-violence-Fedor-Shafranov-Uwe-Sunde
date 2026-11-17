@@ -80,6 +80,8 @@ STEPS = [
     ("empirics",   "us_robustness",              "empirics/scripts/21_us_robustness.R"),          # one robustness table for the US effect vs the frozen base D11 (needs 19, 20, doubly_robust dr_lp)
     ("empirics",   "us_matching",                "empirics/scripts/22_us_matching.R"),             # matched DiD for new US sanctions: path and effect by shock year (needs 21)
     ("empirics",   "us_pscore_matching",         "empirics/scripts/23_us_pscore_matching.R"),     # propensity-score matching, lecture estimand (ATE) + ATT/ATC, NN and subclassification (bootstrap ~min)
+    ("empirics",   "sender_comparison",          "empirics/scripts/24_sender_comparison.R"),      # effect by sender group (any / US / UN / Western rich): LP + 22 + 23 per group (~20 min; needs 21-23)
+    ("empirics",   "lpdid_dgjt",                 "empirics/scripts/25_lpdid_dgjt.R"),             # LP-DiD for US sanctions following the authors' reference code (github danielegirardi/lpdid), non-absorbing windows
     ("empirics",   "writing_tables",            "Writing/scripts/make_tables.py"),             # LaTeX tables for Writing/main.tex from the CSV results
     # exposure extension (added 2026-11-09; separate project, see exposure/README.md)
     ("exposure",   "exposure_lp",                "exposure/scripts/01_exposure_lp.R"),          # LP: shock x pre-sanction exposure to the sender (needs 01)
@@ -98,7 +100,7 @@ def command_for(script: str) -> list[str]:
     if path.suffix == ".py":
         return [sys.executable, str(path)] + extra
     if path.suffix == ".R":
-        return [RSCRIPT, str(path)]
+        return [RSCRIPT, str(path)] + extra
     if path.suffix == ".Rmd":
         out_dir = (ROOT / "empirics" / "results").as_posix()
         expr = (f"rmarkdown::render('{path.as_posix()}', output_format = 'html_document', "

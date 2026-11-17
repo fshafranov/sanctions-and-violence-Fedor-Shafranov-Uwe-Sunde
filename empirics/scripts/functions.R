@@ -263,3 +263,41 @@ save_figure <- function(plot, file_name, width, height) {
   ggplot2::ggsave(file.path(FIGURES, file_name), plot, width = width, height = height, dpi = 200, bg = "#fcfcfb")
   cat("Wrote", file.path(FIGURES, file_name), "\n")
 }
+
+# --- sanctions by sender group (added 2026-11-17, user request: UN vs US vs any vs Western rich) ------------------
+# GSDB new cases without ICC case 685, 1 row per case and target. Groups:
+#   any     : every case
+#   us      : the US is a sender (in 1991-2019 almost always alone; never a UN case)
+#   un      : UN cases (sender "UN" only; the US flag is 0 for all of them)
+#   western : EVERY sender is a Western rich state or the EU/EEC (OECD members of 1990 except Turkey, the EU/EEC,
+#             Cyprus, Malta and the Western European microstates); UN cases excluded. User's definition: Western rich
+#             without backing from non-rich countries (e.g. EU cases joined by Albania, Serbia, Ukraine, Turkey drop out).
+WESTERN_RICH <- c("United States", "EU", "EEC", "Canada", "Norway", "Liechtenstein", "Iceland", "Switzerland", "Japan",
+                  "Australia", "United Kingdom", "France", "Germany", "Netherlands", "Denmark", "Sweden", "New Zealand",
+                  "Spain", "Belgium", "Italy", "Greece", "Ireland", "Finland", "Austria", "Portugal", "Luxembourg",
+                  "Cyprus", "Malta", "Monaco", "Andorra", "San Marino")
+SHOCK_LABELS <- c(any = "Any sender", us = "United States", un = "UN", western = "Western rich (all senders)")
+sender_cases <- function(shock, icc_case = 685) {
+  stopifnot(shock %in% names(SHOCK_LABELS))
+  ends <- read_csv(here("data", "raw", "gsdb", "GSDB_V4.csv"), show_col_types = FALSE) %>%
+    group_by(case = case_id) %>% summarise(end = max(end), .groups = "drop")
+  cases <- read_csv(here("data", "clean", "gsdb", "gsdb_new_cases.csv"), show_col_types = FALSE) %>%
+    filter(case != icc_case) %>% left_join(ends, by = "case")
+  senders <- strsplit(gsub("Korea, South", "Korea South", gsub("Congo, Democratic Republic of the", "DR Congo",
+                                                              cases$sanctioning_state)), ",\\s*")
+  cases$western <- vapply(senders, function(s) all(trimws(s) %in% WESTERN_RICH), logical(1)) & cases$un == 0
+  keep <- switch(shock, any = rep(TRUE, nrow(cases)), us = cases$us == 1, un = cases$un == 1, western = cases$western)
+  cases[keep, ]
+}
+# Per target-year: x = number of new cases of the group; force = a case of the group in force (begin <= yr <= end).
+shock_panel <- function(shock) {
+  cs <- sender_cases(shock)
+  counts <- cs %>% count(iso3c = country_iso3, yr = year, name = "x")
+  force <- cs %>% rowwise() %>% reframe(iso3c = country_iso3, yr = year:end) %>% distinct() %>% mutate(force = 1L)
+  full_join(counts, force, by = c("iso3c", "yr")) %>% mutate(x = replace_na(x, 0L), force = replace_na(force, 0L))
+}
+# --shock=<group> on the command line (master.py passes it); default us.
+shock_arg <- function(default = "us") {
+  a <- grep("^--shock=", commandArgs(trailingOnly = TRUE), value = TRUE)
+  if (length(a)) sub("^--shock=", "", a[1]) else default
+}

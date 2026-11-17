@@ -1,6 +1,6 @@
 # 23 — Propensity-score matching for new US sanctions, with the lecture's matching estimand
 
-Script `empirics/scripts/23_us_pscore_matching.R` (≈ 80 s, 200 bootstrap draws). Table
+Script `empirics/scripts/23_us_pscore_matching.R` (≈ 5 min, 200 bootstrap draws). Table
 `results/tables/us_pscore_matching.md` / `.csv`; figures `fig42_us_pscore_overlap.png`, `fig43_us_pscore_paths.png`.
 User request (16 Nov): matching on the propensity score, with the estimand of the lecture slide
 β_M = ∫ [E(Y|D=1,X=x) − E(Y|D=0,X=x)] dF_X(x).
@@ -59,3 +59,28 @@ Balance after NN matching, ATT side: deaths t, t−1, t−2 within ±0.09 SD, de
   comparisons.
 - Bottom line: propensity-score matching does not contradict the result but cannot confirm it on its own; the
   evidence for the dip rests on the regression designs, doubly robust weighting and covariate matching (22).
+
+## Score + deaths matching and who is compared with whom (added 17 Nov)
+
+User request: match on the score **and** on violence, and show who is compared with whom. Score-only pairs had the
+same score but very different deaths in t (correlation of an event's deaths with its controls' only 0.29; e.g.
+PAK 1993: 0.04 vs 2.55; IDN 1992: 0.03 vs 2.98). The outcome is a change since t, which depends on the level.
+
+- **(NN-D) score + deaths.** Same year; controls within 0.2 SD of the logit **and** 0.5 SD of deaths in t (22's
+  caliper); M = 3 nearest on the standardized distance in both. Both directions, so ATE/ATT/ATC as above.
+- **Figure** `fig44_us_pscore_who_matches_whom.png`: one row per sanctioned event (in conflict), sorted by score; blue
+  = its deaths in t, grey = its matched controls, their ISO codes and scores on the right; left score only, right
+  score + deaths. **Table** `us_pscore_matched_pairs.csv`: every (event, control) pair, both designs, both samples.
+
+| h = 2 (bootstrap SE) [units] | ATE | ATT |
+|---|---|---|
+| In conflict, score + deaths | −0.15 (0.23) [101] | −0.22 (0.27) [34] |
+| All state-years, score + deaths | −0.07** (0.03) [1146] | −0.10 (0.07) [95] |
+
+- Pairs now look alike: ATT balance on deaths t, t−1, t−2 within ±0.06 SD, democracy −0.10; sanction stock still 0.20.
+- **The cost is coverage:** only 34 of the 63 war events with an h = 2 outcome find a control in the same year within
+  both calipers. The ones that do not are mostly high-violence events (AGO 1993, IRQ 1997, SOM 2010, AFG 1999/2011,
+  YEM 2012) and high-score events (2016–2018 Middle East, IRN 2012): no unsanctioned country in that year looks like
+  them. The estimate is the effect on the sanctioned events that do have a comparable unsanctioned country.
+- Point estimate (−0.22) between score-only (−0.11) and 22 (−0.29), same sign, not significant; no pre-trend
+  (h = −5..−3: −0.00 to −0.05). The ATT path dips at h = 2 and is back to zero by h = 3.

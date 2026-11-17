@@ -17,6 +17,8 @@
 #   Samples : in conflict in t-1 (main, as notes 21) and all state-years.
 #   Over the years: d_i2 and cumulative d_i,0..3 by shock year; rolling 9-year means with clustered 95% intervals,
 #             and period means 1991-99 / 2000-09 / 2010-19.
+# Other sender groups (17 Nov): --shock=any|un|western runs the same design for that group ("US" in the comments then
+#   means that group); outputs go to results/{tables,figures}/senders/ with the group as prefix. Called by 24.
 # Output: tables/us_matching.md/.csv, figures/fig40_us_matching_path.png, fig41_us_matching_over_time.png
 # =============================================================================
 source(here::here("empirics", "scripts", "00_setup.R"))
@@ -31,12 +33,27 @@ H_PRE <- -5:-3; H_POST <- 1:8
 MATCH_VARS <- c("viol_lev", "viol_lev_l1", "viol_lev_l2", "ctrl_stock", "us_force_l1", "ctrl_democracy")
 EXACT <- "us_new_l12"
 
-us_counts <- read_csv(here("data", "clean", "gsdb", "gsdb_new_cases.csv"), show_col_types = FALSE) %>%
-  filter(us == 1, case != ICC_CASE) %>% count(iso3c = country_iso3, yr = year, name = "x")
-force <- read_panel() %>% select(gwcode, yr, us_sanction)
+# Sender group (added 17 Nov): --shock=us (default) | any | un | western, see shock_panel() in functions.R. For the US
+# the in-force variable stays the panel's us_sanction (as before, so the US results are unchanged); for the other
+# groups it is built from the GSDB case years. Variable names below say "us" but mean the chosen group.
+SHOCK <- shock_arg(); SHOCK_LABEL <- SHOCK_LABELS[[SHOCK]]
+sp <- shock_panel(SHOCK)
+force <- if (SHOCK == "us") read_panel() %>% select(gwcode, yr, us_sanction) else NULL
 d <- read_csv(file.path(SAMPLE_DATA, "analysis_panel.csv"), show_col_types = FALSE) %>%
-  left_join(us_counts, by = c("iso3c", "yr")) %>% left_join(force, by = c("gwcode", "yr")) %>%
+  left_join(select(sp, iso3c, yr, x, force_grp = force), by = c("iso3c", "yr"))
+d <- (if (SHOCK == "us") left_join(d, force, by = c("gwcode", "yr")) else mutate(d, us_sanction = replace_na(force_grp, 0L))) %>%
   mutate(x = replace_na(x, 0L)) %>% arrange(gwcode, yr)
+# outputs: the US files keep their names; other groups go to results/{tables,figures}/senders/ with a suffix
+if (SHOCK != "us") {
+  TABLES <- file.path(TABLES, "senders"); FIGURES <- file.path(FIGURES, "senders")
+  dir.create(TABLES, showWarnings = FALSE); dir.create(FIGURES, showWarnings = FALSE)
+}
+out_file <- function(f) if (SHOCK == "us") f else sub("^(fig[0-9]+_)?us_", paste0("\\1", SHOCK, "_"), f)
+relabel <- function(x) if (SHOCK == "us") x else gsub("\\bUS\\b", SHOCK_LABEL, x, perl = TRUE)
+save_fig <- function(p, f, w, h) {   # titles and captions say "US"; other groups get their label
+  if (SHOCK != "us") p <- p + do.call(labs, lapply(Filter(is.character, as.list(p$labels)), relabel))
+  save_figure(p, out_file(f), w, h)
+}
 lead <- function(v, k) lag_by_year(d, v, -k)
 d$viol_lev_l1 <- lag_by_year(d, "viol_lev", 1); d$viol_lev_l2 <- lag_by_year(d, "viol_lev", 2)
 d$conflict_l1 <- lag_by_year(d, "viol_inc", 1)
@@ -135,12 +152,14 @@ for (s in names(SAMPLES)) for (v in c("dy_2", "dc_3")) {
 over_time <- bind_rows(over_time) %>% mutate(lower = estimate - 1.96 * se, upper = estimate + 1.96 * se)
 write_csv(bind_rows(mutate(results, part = "path"), mutate(over_time, part = "over time"),
                     mutate(balance, part = "balance"), mutate(info, part = "matching"), mutate(adjusted, part = "bias-adjusted")),
-          file.path(TABLES, "us_matching.csv"))
-write_csv(events_all, file.path(TABLES, "us_matching_events.csv"))
+          file.path(TABLES, out_file("us_matching.csv")))
+write_csv(events_all, file.path(TABLES, out_file("us_matching_events.csv")))
 
 # Figures ----------------------------------------------------------------------------------------------------
 COLS <- c("All state-years" = PAPER_COLOURS[["blue"]], "In conflict in t-1" = PAPER_COLOURS[["orange"]])
-lp <- read_csv(file.path(TABLES, "us_paths.csv"), show_col_types = FALSE) %>%     # base LP path (script 21)
+lp_file <- if (SHOCK == "us") file.path(TABLES, "us_paths.csv") else file.path(TABLES, paste0(SHOCK, "_lp_paths.csv"))   # base LP path (21; other groups: 24)
+if (!file.exists(lp_file)) stop("needs the LP path ", lp_file, " (script 21 for the US, 24 for other sender groups)")
+lp <- read_csv(lp_file, show_col_types = FALSE) %>%
   mutate(type = ifelse(startsWith(var, "py_"), "Per year: y(t+h) - y(t)", "Cumulative: sum of y(t+j) - y(t), j = 0..h"))
 pl <- results %>% mutate(segment = ifelse(horizon < 0, "pre", "post"), sample = factor(sample, levels = names(COLS)),
                          type = factor(type, levels = unique(results$type)))
@@ -161,7 +180,7 @@ fig40 <- ggplot(pl, aes(horizon, estimate, group = segment)) +
                         "95% intervals, SE clustered by the treated country. Crosses: base local projection (script 21) for comparison. ",
                         "h < -2: placebo. Outcomes end 2019.")) +
   theme_paper()
-save_figure(fig40, "fig40_us_matching_path.png", 12, 7)
+save_fig(fig40, "fig40_us_matching_path.png", 12, 7)
 
 ot <- over_time %>% filter(!is.na(centre)) %>% mutate(sample = factor(sample, levels = names(COLS)),
   var = factor(recode(var, dy_2 = "Per year, h = 2", dc_3 = "Cumulative, h = 0..3"), levels = c("Per year, h = 2", "Cumulative, h = 0..3")))
@@ -184,14 +203,14 @@ fig41 <- ggplot() +
                         "Line and band: mean over events in a 9-year window of shock years, 95% interval clustered by country.\n",
                         "Late windows lose events at the cumulative horizon (outcomes end 2019).")) +
   theme_paper()
-save_figure(fig41, "fig41_us_matching_over_time.png", 12, 7)
+save_fig(fig41, "fig41_us_matching_over_time.png", 12, 7)
 
 # Table ----------------------------------------------------------------------------------------------------
 to_md <- function(table) c(paste0("| ", paste(names(table), collapse = " | "), " |"),
                            paste0("|", paste(rep("---", ncol(table)), collapse = "|"), "|"),
                            apply(table, 1, function(r) paste0("| ", paste(ifelse(is.na(r), "", r), collapse = " | "), " |")), "")
 cell <- function(e, s, p) sprintf("%.3f%s (%.3f)", e, significance_stars(p), s)
-writeLines(c(
+writeLines(relabel(c(
   "# Matched difference-in-differences for new US sanctions", "",
   paste0("Generated by `empirics/scripts/22_us_matching.R` on ", format(Sys.time(), "%Y-%m-%d %H:%M"),
          ". Figures `fig40_us_matching_path.png`, `fig41_us_matching_over_time.png`; estimates `us_matching.csv`, ",
@@ -217,5 +236,5 @@ writeLines(c(
           select(sample, var, period, cell) %>% pivot_wider(names_from = period, values_from = cell)),
   "*Notes:* * p<0.1, ** p<0.05, *** p<0.01. SEs treat the matched controls as fixed (no adjustment for matching ",
   "uncertainty; Abadie-Imbens). Rolling 9-year windows: `us_matching.csv`, part `over time`."
-), file.path(TABLES, "us_matching.md"))
-cat("\nWrote", file.path(TABLES, "us_matching.md"), "\n")
+)), file.path(TABLES, out_file("us_matching.md")))
+cat("\nWrote", file.path(TABLES, out_file("us_matching.md")), "\n")
