@@ -103,10 +103,12 @@ plot_paths <- function(data, colour_by, title, file) {
     geom_hline(yintercept = 0, colour = "#52514e", linewidth = 0.3) + geom_vline(xintercept = -0.5, linetype = "dotted") +
     geom_pointrange(aes(ymin = lower, ymax = upper), position = position_dodge(width = 0.5), size = 0.2) +
     facet_wrap(~ design, ncol = 3) +
+    scale_colour_manual(values = c("All" = PAPER_COLOURS[["blue"]], "High US share of trade" = PAPER_COLOURS[["orange"]],
+                                   "Low US share of trade" = PAPER_COLOURS[["blue"]])) +
     labs(title = title, x = "Years relative to the first new US case",
          y = "log(1 + UCDP deaths per 100k), treated minus control", colour = NULL,
          caption = "Callaway-Sant'Anna (A-D, doubly robust, base period g-1, bootstrap SE by state); E: TWFE event study, end bins. 95% intervals.") +
-    theme_paper() + theme(legend.position = "top")
+    theme_paper() + theme(legend.position = if (n_distinct(data[[colour_by]]) > 1) "top" else "none")
   save_figure(p, file, 11, 6.5)
 }
 plot_paths(filter(res, subset == "All") %>% mutate(subset = "All"), "subset",

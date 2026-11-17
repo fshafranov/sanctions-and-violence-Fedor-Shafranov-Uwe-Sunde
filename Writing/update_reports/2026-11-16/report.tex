@@ -71,6 +71,10 @@
   sign for US sanctions in wars; none of the new designs is significant, and the LP-DiD shows that the sanctioned wars
   had escalated 3--5 years before the sanction. In the local projection Western rich and UN sanctions are also followed by
   fewer deaths (UN: slower but cumulating), but only the US effect is supported by matching. Overall assessment: Section~\ref{sec:final}.
+\item \textbf{Added 17.11: US trade exposure} (Section~\ref{sec:trade}). A country's first US sanction (staggered
+  adoption, Sun--Abraham and Callaway--Sant'Anna with five control groups) shows no effect, pooled or split by trade
+  exposure. A pre-specified interaction in the base local projection finds no trade gradient: the US effect in wars is
+  the same for targets that trade little or a lot with the US.
 \end{enumerate}
 \end{mdframed}
 
@@ -402,7 +406,7 @@ rarely sanctions (poor balance, 0.47 SD) --- extrapolation. The policy-relevant 
 \end{figure}
 
 % =============================================================================
-\parttitle{Part C --- Added 17.11.2026: matching on violence, other senders, LP-DiD with the authors' code}
+\parttitle{Part C --- Added 17.11.2026: matching on violence, other senders, LP-DiD with the authors' code, trade exposure}
 % =============================================================================
 
 \section{Who is compared with whom, and matching on the score and on violence}
@@ -581,6 +585,143 @@ numbers to two decimals; the 5-year window gives $-0.37$ to $-0.41$ for deaths a
   Section~\ref{sec:peace}.
 \end{itemize}
 
+\section{US trade exposure}
+\label{sec:trade}
+
+Does a US sanction reduce violence more where the target depends on trade with the US? I look at this in two
+designs: first an exploratory staggered-adoption design, then one pre-specified interaction in the base local
+projection. Exposure is measured before the sanction (mean over $t-3..t-1$), either as the US share of the target's
+trade or as trade with the US in \% of GDP.
+
+\subsection{Staggered adoption: the first US sanction}
+
+Here treatment is absorbing: a country counts as treated from its \emph{first-ever} new US case onward. 47 countries
+get their first US case in 1991--2019. 75 countries were first sanctioned before 1991 and are dropped, which removes
+most of the wars behind the base result; only 48 of the 245 US cases in 1991--2019 are first cases. Pooled over all
+47, there is no effect (Sun--Abraham, average over $h=0..5$: $+0.03$, SE 0.06).
+
+\textbf{Split by exposure, never-sanctioned countries as controls} (Figure~\ref{fig:stag_trade}). I split the
+treated at the median exposure; every half is compared with all 78 never-sanctioned countries
+\citep{sun2021}. Trade in \% of GDP gives $-0.23$\sig{***} for the high half, but the high group lies 0.2--0.4 below
+the reference year \emph{before} the sanction too, so this is a level difference, not an effect. The high group is
+mostly the Americas and a few rich countries (Canada, the Caribbean, Costa Rica, Colombia, Venezuela, Ireland); the
+low group mostly the Balkans, the former Soviet Union and West/Central Africa. With the share measure, the low
+half dips by about $-0.2$ at $h=2..4$; the average is not significant. The two measures disagree in sign.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.9\textwidth]{fig49_us_staggered_trade.png}
+\caption{First US sanction by US trade exposure (median split among the treated), Sun--Abraham, never-sanctioned
+countries as controls. Rows: all countries and countries with any conflict in 1989--2019.}
+\label{fig:stag_trade}
+\end{figure}
+
+\textbf{Other control groups, with exposure-matched controls} (Figure~\ref{fig:stag_controls}). Using
+\citet{callaway2021} (package \texttt{did}), I re-estimate with four control groups: never sanctioned;
+not yet sanctioned only (countries first sanctioned later, before their sanction); both; the last cohorts
+(2014--19) as controls. A fifth row, used only for comparison, uses countries already sanctioned before 1991 as
+controls in a two-way fixed-effects event study, a comparison known to be biased. The controls are now split by their
+own exposure too, so high-exposure treated countries are compared with high-exposure controls.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.95\textwidth]{fig51_us_staggered_controls_trade.png}
+\caption{First US sanction by US share of trade, exposure-matched controls. A--C: Callaway--Sant'Anna (doubly
+robust, base period $g-1$, bootstrap SE by state); E: two-way fixed effects with countries sanctioned before 1991 as
+controls. D (last cohorts as controls) has too few controls per exposure group and is not shown.}
+\label{fig:stag_controls}
+\end{figure}
+
+\begin{table}[H]
+\centering\small
+\caption{First US sanction, average effect over $h=0..5$ on $\log(1+\text{deaths per 100k})$, by control group}
+\label{tab:stag_controls}
+\begin{threeparttable}
+\begin{tabular}{@{}lccc@{}}
+\toprule
+Control group & All treated & High US share & Low US share \\
+\midrule
+A Never sanctioned & $0.01$ (0.17) & $0.02$ (0.14) & $-0.06$ (0.33) \\
+B Not yet sanctioned only & $0.07$ (0.18) & $0.17$ (0.22) & $-0.01$ (0.35) \\
+C Not yet sanctioned and never sanctioned & $0.02$ (0.16) & $0.04$ (0.14) & $-0.04$ (0.33) \\
+D Last cohorts (2014--19), years to 2013 & $0.04$ (0.21) & --- & --- \\
+E Sanctioned before 1991 (two-way FE) & $0.06$ (0.14) & $0.14$ (0.13) & $-0.08$ (0.25) \\
+\bottomrule
+\end{tabular}
+\begin{tablenotes}\footnotesize
+\item 47 treated countries (23 high, 22 low; median US share 4.9\,\%). None of the estimates is significant at 10\,\%.
+\end{tablenotes}
+\end{threeparttable}
+\end{table}
+
+No control group gives an effect, pooled or by exposure. With not-yet-sanctioned controls (B) the sanctioned
+countries were 0.2 log points less violent than the controls six years before and close the gap by $t-1$: countries
+about to be sanctioned are already changing, which is the known risk of that control group. The low-exposure dip
+at $h=2..4$ appears in A, C and E but is never close to significant. The first-ever US sanction is a different event
+from the one in the base result: there, most new US cases add to sanctions already in force against a country at war.
+
+\subsection{The pre-specified test: trade exposure in the base local projection}
+
+Before running it, I wrote one test into the analysis plan (decision D12): the base specification (D11) among
+countries in conflict in $t-1$, with the US share of trade (standardised) and its interaction with the US shock.
+The primary coefficient is the interaction at $h=2$. Trade in \% of GDP was added afterwards and is reported as a
+post-hoc variant.
+
+\begin{table}[H]
+\centering\small
+\caption{US shock $\times$ trade exposure, in conflict in $t-1$, response of $\log(1+\text{deaths per 100k})$}
+\label{tab:trade_lp}
+\begin{threeparttable}
+\begin{tabular}{@{}lcccc@{}}
+\toprule
+& \multicolumn{2}{c}{US share of trade (D12)} & \multicolumn{2}{c}{Trade with US, \% GDP (post-hoc)} \\
+\cmidrule(lr){2-3}\cmidrule(lr){4-5}
+& $h=2$ & cum.\ $0..3$ & $h=2$ & cum.\ $0..3$ \\
+\midrule
+US case, at mean exposure & $-0.259$\sig{***} & $-0.631$\sig{***} & $-0.266$\sig{***} & $-0.635$\sig{***} \\
+& (0.063) & (0.142) & (0.061) & (0.140) \\
+US case $\times$ exposure (per SD) & $0.033$ & $0.058$ & $0.038$ & $0.053$ \\
+& (0.049) & (0.116) & (0.082) & (0.182) \\
+US case at 25th percentile & $-0.280$\sig{***} & $-0.669$\sig{***} & $-0.289$\sig{***} & $-0.667$\sig{***} \\
+US case at 75th percentile & $-0.252$\sig{***} & $-0.617$\sig{***} & $-0.256$\sig{***} & $-0.621$\sig{***} \\
+\midrule
+SD of exposure & 15.3 pp & 15.4 pp & 8.1 pp & 8.1 pp \\
+State-years (shock years) & 1,026 (85) & 976 (72) & 1,012 (82) & 963 (70) \\
+\bottomrule
+\end{tabular}
+\begin{tablenotes}\footnotesize
+\item Base specification D11 plus exposure (mean $t-3..t-1$, standardised in the sample) and its interaction with the
+shock. Percentiles: US share 4\,\% and 17\,\%; trade 1.5\,\% and 8.4\,\% of GDP. SE clustered by state.
+\sig{*}~$p<0.1$, \sig{**}~$p<0.05$, \sig{***}~$p<0.01$.
+\end{tablenotes}
+\end{threeparttable}
+\end{table}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.9\textwidth]{fig52_us_trade_interaction_paths.png}
+\caption{Effect of a new US case at mean exposure (top) and its interaction with exposure (bottom), $h=1..6$.}
+\label{fig:trade_paths}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.9\textwidth]{fig53_us_trade_interaction_margins.png}
+\caption{Effect of one new US case at $h=2$ across the exposure range. Ticks: state-years with a new US case.}
+\label{fig:trade_margins}
+\end{figure}
+
+\begin{itemize}[leftmargin=*]
+\item \textbf{No trade gradient.} The interaction is small and not significant ($+0.03$, $p=0.51$), and has the
+  ``wrong'' sign: if anything, the decline is slightly smaller where the target trades more with the US. The same
+  holds for trade in \% of GDP ($+0.04$, $p=0.64$) and at every horizon (Figure~\ref{fig:trade_paths}).
+\item \textbf{The base effect is unchanged} ($-0.26$ at mean exposure, $-0.25$ in D11) and holds from 4\,\% to
+  17\,\% US share alike. Figure~\ref{fig:trade_margins}: negative and significant up to about 40\,\% US share or
+  15\,\% of GDP, where most US sanctions fall; above that there are only a handful of cases.
+\item This agrees with the separate exposure analysis (trade/GDP, arms imports, all sanctions, UCDP and ACLED): no
+  trade gradient. Whatever lowers deaths after a US sanction in wars, it does not visibly work through trade.
+\end{itemize}
+
 \section{Where this leaves the project}
 \label{sec:final}
 
@@ -598,7 +739,9 @@ numbers to two decimals; the 5-year window gives $-0.37$ to $-0.41$ for deaths a
 \item \textbf{Not identified:} the US sanctions wars after an escalation, and at the same time as wars are at a high
   level. With annual data, a post-sanction decline cannot be separated from wars that would have come down anyway.
   Selection on observables is the assumption throughout, and the LP-DiD's pre-period shows it is not innocuous.
-\item \textbf{Not found:} that sanctions end wars, that the US effect lasts, or a robust effect outside wars.
+\item \textbf{Not found:} that sanctions end wars, that the US effect lasts, a robust effect outside wars, an
+  effect of a country's \emph{first} US sanction, or a larger effect where the target trades more with the US
+  (Section~\ref{sec:trade}).
 \end{itemize}
 
 \bibliographystyle{plainnat}
