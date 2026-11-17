@@ -299,7 +299,9 @@ hand with `fixest::feols` and compare.
   34 events have a comparable control; fig44 / `us_pscore_matched_pairs.csv` show who is matched with whom.
 - **By sender group (24, 17 Nov):** any / US / UN / Western rich (all senders Western rich or EU) through LP, 22 and 23
   (`--shock=` argument; master.py now passes args to R). US the only group negative in every design; Western rich
-  LP −0.11*** in wars (same without US) but ≈ 0 in matching; any ≈ 0; UN 71 cases, too noisy. Notes 24.
+  LP −0.11*** in wars (same without US) but ≈ 0 in matching; any ≈ 0; UN 71 cases: LP per year n.s.
+  but cumulating (−0.89* by h = 5, −1.84** by h = 8 in wars; 28 countries, LOO not checked), matching too noisy. Notes 24;
+  LP-by-sender table + fig46 in the 16.11 report (17 Nov).
 - **LP-DiD per the authors' code (25, 17 Nov):** US, non-absorbing windows (controls clean through t+h). Pre-period
   difference in wars at h −5 only (−0.50***; h −4 10 %, h −3/−2 ≈ 0); post dip −0.23..−0.37 at h = 2..4, n.s. Lagged-outcome variant
   not yet run. Script 12 is our older own-code LP-DiD (any sender, weaker clean-control rule).

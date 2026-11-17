@@ -69,7 +69,8 @@
 \item \textbf{Added 17.11 (Part C).} Matching on the score \emph{and} on deaths, a figure of who is compared with whom,
   the comparison by sender (any, US, UN, Western rich), and LP-DiD following the authors' own code. All give the same
   sign for US sanctions in wars; none of the new designs is significant, and the LP-DiD shows that the sanctioned wars
-  had escalated 3--5 years before the sanction. Other senders show little. Overall assessment: Section~\ref{sec:final}.
+  had escalated 3--5 years before the sanction. In the local projection Western rich and UN sanctions are also followed by
+  fewer deaths (UN: slower but cumulating), but only the US effect is supported by matching. Overall assessment: Section~\ref{sec:final}.
 \end{enumerate}
 \end{mdframed}
 
@@ -464,10 +465,59 @@ US cases, LP: $-0.110$\sig{**} (0.042) in wars, $-0.042$ (0.035) overall.
 \end{threeparttable}
 \end{table}
 
-The US is the only sender negative in every design and the only one a matching design confirms. Adding all other
-senders dilutes the US effect rather than adding to it. Western rich senders show a smaller LP effect, also without
-the US cases, but matching puts it near zero. UN cases are too few (7--30 matched events) to say anything; they target
-the most violent wars, where comparable unsanctioned countries are scarce.
+The US is the only sender negative in every design and the only one a matching design confirms. In the local
+projection, however, the decline is not only a US phenomenon (Table~\ref{tab:senderlp}, Figure~\ref{fig:senderlp}):
+\begin{itemize}[leftmargin=*]
+\item \textbf{At $h=2$} the US effect is the largest ($-0.25$ in wars); Western rich senders give about half of it
+  ($-0.11$\sig{***}), and the same without the US cases, so that part is not the US. Any sender together is smaller
+  still ($-0.07$\sig{***}): the many other senders dilute the US and Western effects.
+\item \textbf{UN sanctions have a different shape:} smaller and insignificant in any single year ($-0.10$ at $h=2$), but
+  the decline persists and cumulates, to $-0.89$\sig{*} by $h=5$ and $-1.84$\sig{**} by $h=8$ in wars, while the US dip
+  closes by $h=5$. There is no pre-trend ($h=-5..-3$: all $p\ge0.26$).
+\item \textbf{Caveats:} the UN result rests on 71 cases in 28 countries, concentrated in a few wars (Liberia 7, Iran 6,
+  Iraq 5, Afghanistan 5, Sudan 4); whether it survives dropping single countries is not checked. Matching cannot
+  confirm it: UN cases target the most violent wars, where comparable unsanctioned countries are scarce (7--30 matched
+  events, estimates from $-0.39$ to $+0.50$). For Western rich senders matching puts the effect near zero.
+\end{itemize}
+
+\begin{table}[H]
+\centering\small
+\caption{Local projection (D11) by sender: effect of one new case on $\log(1+\text{deaths per 100k})$}
+\label{tab:senderlp}
+\begin{threeparttable}
+\begin{tabular}{@{}lcccc@{}}
+\toprule
+& Any sender & United States & UN & Western rich \\
+\midrule
+\multicolumn{5}{@{}l}{\emph{In conflict in $t-1$}} \\
+$h=2$ & $-0.070$\sig{***} (0.024) & $-0.251$\sig{***} (0.062) & $-0.100$ (0.093) & $-0.111$\sig{***} (0.029) \\
+Cumulative $0..3$ & $-0.180$\sig{***} (0.052) & $-0.617$\sig{***} (0.140) & $-0.507$\sig{*} (0.277) & $-0.252$\sig{***} (0.066) \\
+Cumulative $0..5$ & $-0.220$\sig{**} (0.086) & $-0.597$\sig{**} (0.291) & $-0.893$\sig{*} (0.451) & $-0.252$\sig{**} (0.112) \\
+Cumulative $0..8$ & $-0.299$ (0.191) & $-0.666$ (0.560) & $-1.836$\sig{**} (0.793) & $-0.250$ (0.224) \\
+Shock-years & 187 & 85 & 49 & 132 \\
+\addlinespace
+\multicolumn{5}{@{}l}{\emph{All state-years}} \\
+$h=2$ & $-0.026$ (0.020) & $-0.105$\sig{***} (0.039) & $-0.162$ (0.132) & $-0.045$\sig{*} (0.025) \\
+Cumulative $0..3$ & $-0.049$ (0.046) & $-0.222$\sig{***} (0.079) & $-0.523$\sig{*} (0.311) & $-0.081$ (0.059) \\
+Cumulative $0..5$ & $-0.028$ (0.077) & $-0.217$ (0.156) & $-1.051$\sig{**} (0.491) & $-0.042$ (0.101) \\
+Cumulative $0..8$ & $+0.059$ (0.148) & $+0.043$ (0.338) & $-1.428$\sig{***} (0.549) & $+0.105$ (0.176) \\
+Shock-years & 459 & 183 & 64 & 291 \\
+\bottomrule
+\end{tabular}
+\begin{tablenotes}\footnotesize
+\item Base specification (D11) with the shock replaced by the number of new cases of each group. Standard errors
+clustered by state. Western rich without the US cases: $h=2$ $-0.110$\sig{**} (0.042) in wars, $-0.042$ (0.035) overall.
+\end{tablenotes}
+\end{threeparttable}
+\end{table}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.95\textwidth]{fig46_sender_lp_paths.png}
+\caption{Local projection (D11) by sender: per-year and cumulative paths, both samples (95\,\% intervals).
+$h=-2..0$ are controlled for and therefore not estimated.}
+\label{fig:senderlp}
+\end{figure}
 
 \begin{figure}[H]
 \centering
@@ -539,15 +589,16 @@ numbers to two decimals; the 5-year window gives $-0.37$ to $-0.41$ for deaths a
   weighting, covariate matching, propensity-score matching in four versions, LP-DiD --- gives a negative estimate two
   to four years after the sanction, of $-0.07$ to $-0.4$ log points, fading by $h=5$--6 (the panel VAR, estimated
   on all state-years only, agrees there).
-  The effect is specific to the US; other senders show little.
+  It is clearest for the US. In the local projection Western rich senders (also without the US) and UN sanctions
+  are followed by fewer deaths too --- for the UN smaller per year but cumulating over eight years --- but matching
+  supports only the US effect, and the UN result rests on a few wars.
 \item \textbf{Significant only with adjustment for past violence:} the local projection, doubly robust weighting
   and covariate matching on violence. Designs that need a comparable unsanctioned country in the same year keep
   30--75 events and lose significance.
 \item \textbf{Not identified:} the US sanctions wars after an escalation, and at the same time as wars are at a high
   level. With annual data, a post-sanction decline cannot be separated from wars that would have come down anyway.
   Selection on observables is the assumption throughout, and the LP-DiD's pre-period shows it is not innocuous.
-\item \textbf{Not found:} that sanctions end wars, that the effect lasts, or a general effect across senders or
-  outside wars.
+\item \textbf{Not found:} that sanctions end wars, that the US effect lasts, or a robust effect outside wars.
 \end{itemize}
 
 \bibliographystyle{plainnat}
