@@ -295,6 +295,20 @@ hand with `fixest::feols` and compare.
 - Propensity-score matching with the **lecture's matching estimand** (23; β_M = ∫[E(Y|D=1,x) − E(Y|D=0,x)] dF_X(x) =
   ATE, plus ATT/ATC; NN on the logit within year, with/without 0.2 SD caliper; subclassification): all war estimates
   negative (−0.02 to −0.27), none significant; all-state-years ATE driven by extrapolated ATC. ATT is the relevant estimand.
+  17 Nov: added score + deaths matching (score caliper + 0.5 SD caliper on deaths in t): war ATT −0.22 (0.27), only
+  34 events have a comparable control; fig44 / `us_pscore_matched_pairs.csv` show who is matched with whom.
+- **By sender group (24, 17 Nov):** any / US / UN / Western rich (all senders Western rich or EU) through LP, 22 and 23
+  (`--shock=` argument; master.py now passes args to R). US the only group negative in every design; Western rich
+  LP −0.11*** in wars (same without US) but ≈ 0 in matching; any ≈ 0; UN 71 cases, too noisy. Notes 24.
+- **LP-DiD per the authors' code (25, 17 Nov):** US, non-absorbing windows (controls clean through t+h). Pre-period
+  difference in wars at h −5 only (−0.50***; h −4 10 %, h −3/−2 ≈ 0); post dip −0.23..−0.37 at h = 2..4, n.s. Lagged-outcome variant
+  not yet run. Script 12 is our older own-code LP-DiD (any sender, weaker clean-control rule).
+  Incidence (same script): wars continue more often after a US sanction (+13 pp** h = 1; h = 2 only 10 %). Pre-periods:
+  only deaths h = −5 in wars significant at 5 % (−0.50***); incidence pre-periods not (corrected 17 Nov: stars are
+  10/5/1 %, figure bands 95 % — say which level when reporting).
+- **Report:** `Writing/update_reports/2026-11-16/report.tex` extended 17 Nov with Part C (who-matches-whom, sender
+  groups, LP-DiD per the authors' code) and section 14 "Where this leaves the project" (closing assessment; user is
+  considering parking the project). 17 pages.
 - **Clean events:** controls cannot have a US case in t−1..t−2, so both matching designs (22, 23) estimate the effect
   of a US sanction **after ≥ 2 years without one** (22 had dropped the others implicitly; notes 22 corrected).
 - How the user's matching course frames it: matching on x with explicit weights; regression weights "ruin

@@ -9,6 +9,8 @@
 % Bibliography: ../../references.bib (paper) + ../2026-11-09/report_refs.bib + report_refs.bib (new references).
 % NUMBERS: runs of 16 Nov 2026 (scripts 13 section 8, 19-22; dashboard build of 16 Nov). Sources of every number:
 % empirics/notes/13, 19-22 and dashboard/README.md.
+% EXTENDED 17 Nov 2026 (user): score + deaths matching and who-matches-whom (23, fig44), sender groups (24, fig45),
+% LP-DiD following the authors' reference code (25, fig47), and a closing assessment (Part D). Numbers: notes 23-25.
 % =============================================================================
 \documentclass[11pt,a4paper]{article}
 
@@ -37,7 +39,7 @@
 \newcommand{\parttitle}[1]{\vspace{1.2em}\noindent{\Large\bfseries #1}\par\vspace{0.3em}\hrule\vspace{0.6em}}
 
 \title{Do Sanctions Break the Cycle of Violence?\\[4pt]
-\normalsize Update 16.11.2026}
+\normalsize Update 16.11.2026, extended 17.11.2026}
 \author{}
 \date{}
 
@@ -64,8 +66,10 @@
   countries it is small and fragile. Whether it fades over the decades depends on the design: the local projection is
   flat, the matching estimate falls from about $-0.5$ (1990s sanctions) to about 0 (2010s). Identification is
   selection on observables throughout.
-\item \textbf{Next:} why the regression and matching estimates differ (regression weights vs.\ an explicit ATT);
-  which violence falls (state-based, non-state, one-sided); a sensitivity analysis for unobserved confounding.
+\item \textbf{Added 17.11 (Part C).} Matching on the score \emph{and} on deaths, a figure of who is compared with whom,
+  the comparison by sender (any, US, UN, Western rich), and LP-DiD following the authors' own code. All give the same
+  sign for US sanctions in wars; none of the new designs is significant, and the LP-DiD shows that the sanctioned wars
+  had escalated 3--5 years before the sanction. Other senders show little. Overall assessment: Section~\ref{sec:final}.
 \end{enumerate}
 \end{mdframed}
 
@@ -85,12 +89,15 @@ Doubly robust IPWRA (0/1 shock) & $-0.284$\sig{***} (0.083) & $-0.127$\sig{***} 
 Matched difference-in-differences (ATT) & $-0.289$\sig{**} (0.120) & $-0.141$\sig{**} (0.057) \\
 \quad bias-adjusted & $-0.426$\sig{**} (0.171) & $-0.160$\sig{**} (0.063) \\
 Propensity-score matching (ATT, caliper 0.2 SD) & $-0.268$ (0.284) & $-0.092$ (0.097) \\
+\quad score + deaths in $t$ (17.11) & $-0.224$ (0.273) & $-0.097$ (0.067) \\
+LP-DiD, authors' code, $y_{t+2}-y_{t-1}$ (17.11) & $-0.228$ (0.218) & $-0.068$ (0.102) \\
 \bottomrule
 \end{tabular}
 \begin{tablenotes}\footnotesize
 \item US cases without ICC case 685, UCDP organised violence, shock years 1991--2019. Standard errors clustered by
 state (VAR and propensity-score matching: state-cluster bootstrap). Both matching rows: US sanctions after at least two
-years without a new US case (Section~\ref{sec:matching}). \sig{*}~$p<0.1$, \sig{**}~$p<0.05$, \sig{***}~$p<0.01$.
+years without a new US case (Section~\ref{sec:matching}); LP-DiD: none in the three years before and none in
+$t+1..t+h$ (Section~\ref{sec:lpdid}). \sig{*}~$p<0.1$, \sig{**}~$p<0.05$, \sig{***}~$p<0.01$.
 \end{tablenotes}
 \end{threeparttable}
 \end{table}
@@ -394,40 +401,154 @@ rarely sanctions (poor balance, 0.47 SD) --- extrapolation. The policy-relevant 
 \end{figure}
 
 % =============================================================================
-\parttitle{Part C --- What follows}
+\parttitle{Part C --- Added 17.11.2026: matching on violence, other senders, LP-DiD with the authors' code}
 % =============================================================================
 
-\section{What we can and cannot say}
+\section{Who is compared with whom, and matching on the score and on violence}
+\label{sec:who}
+
+Propensity-score matching compares units with the same \emph{score}, not the same situation. Listing the pairs
+(Figure~\ref{fig:who}, left) shows the problem: in wars, the correlation between a sanctioned event's deaths in $t$ and
+its matched controls' deaths is only 0.29. Pakistan 1993 (0.04 log deaths per 100k) is matched to Sierra Leone,
+Tajikistan and Djibouti (2.55 on average); Indonesia 1992 (0.03) to Somalia, Lebanon and Djibouti (2.98). In 2017 Somalia,
+Sudan, Egypt and Eritrea share the same three controls (Thailand, Afghanistan, Jordan). Balance holds on average,
+not pair by pair, and the outcome is a change since $t$, which depends on the level.
+
+A new version therefore matches on both: controls of the same year within 0.2 SD of the score's logit \emph{and}
+within 0.5 SD of deaths in $t$ (the caliper of the covariate matching), nearest on the standardised distance in both
+(Figure~\ref{fig:who}, right). Pairs now look alike (deaths in $t$, $t-1$, $t-2$ within $\pm0.06$ SD), but only 34 of
+63 war events find such a control. The ones that do not are the most violent (Angola 1993, Iraq 1997, Somalia 2010,
+Afghanistan 1999/2011) and those with the highest scores (the Middle East 2016--18, Iran 2012): no unsanctioned
+country in that year looks like them. The ATT is $-0.22$ (0.27) in wars and $-0.10$ (0.07) overall --- between the
+score-only ($-0.11$) and the covariate matching ($-0.29$), not significant.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{fig44_us_pscore_who_matches_whom.png}
+\caption{Who is compared with whom (wars). Each row: a sanctioned event (blue, deaths in $t$) and its matched
+unsanctioned countries of the same year (grey), with their ISO codes and scores. Left: score only. Right: score and
+deaths in $t$.}
+\label{fig:who}
+\end{figure}
+
+\section{Sanctions by sender: any, US, UN, Western rich}
+\label{sec:senders}
+
+The US measure is almost purely unilateral: in 1991--2019, 242 of 245 new US cases have the US as the only sender, and
+none is a UN case (UN cases have ``UN'' as the sender; only 17 US case-targets fall in a year with a new UN case). I
+re-ran every design with three other shocks: any sender (835 cases), UN (71), and Western rich --- every sender a
+Western rich state or the EU, UN cases excluded (522; this includes the US cases and drops EU cases joined by
+non-rich countries such as Albania, Serbia or Ukraine). Controls are clean for the same group.
+
+\begin{table}[H]
+\centering\small
+\caption{Effect at $h=2$ by sender, in conflict in $t-1$}
+\label{tab:senders}
+\begin{threeparttable}
+\begin{tabular}{@{}lcccc@{}}
+\toprule
+& Any sender & United States & UN & Western rich \\
+\midrule
+Local projection (D11), per case & $-0.070$\sig{***} & $-0.251$\sig{***} & $-0.100$ & $-0.111$\sig{***} \\
+Matched DiD, covariates (ATT) & $+0.122$ & $-0.289$\sig{**} & $+0.451$ & $-0.110$ \\
+PS matching, nearest neighbour (ATT) & $+0.039$ & $-0.109$ & $-0.223$ & $-0.041$ \\
+PS matching, score + deaths (ATT) & $-0.036$ & $-0.224$ & $+0.502$ & $+0.009$ \\
+Shock years / events (LP) & 187 & 85 & 49 & 132 \\
+\bottomrule
+\end{tabular}
+\begin{tablenotes}\footnotesize
+\item Standard errors in \texttt{empirics/results/tables/sender\_comparison.md}. The LP coefficient is per new case,
+the matching estimates per event, so compare signs across senders, not sizes across designs. Western rich without the
+US cases, LP: $-0.110$\sig{**} (0.042) in wars, $-0.042$ (0.035) overall.
+\end{tablenotes}
+\end{threeparttable}
+\end{table}
+
+The US is the only sender negative in every design and the only one a matching design confirms. Adding all other
+senders dilutes the US effect rather than adding to it. Western rich senders show a smaller LP effect, also without
+the US cases, but matching puts it near zero. UN cases are too few (7--30 matched events) to say anything; they target
+the most violent wars, where comparable unsanctioned countries are scarce.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.9\textwidth]{fig45_sender_comparison.png}
+\caption{Effect at $h=2$ and cumulated over 0--3 by sender and design, both samples (95\,\% intervals).}
+\label{fig:senders}
+\end{figure}
+
+\section{LP-DiD with the authors' code}
+\label{sec:lpdid}
+
+The earlier LP-DiD (October) was our own implementation and used any sender. This one follows the authors' published
+reference code \citep{dube2025}: the R examples for the estimation (long difference $y_{t+h}-y_{t-1}$ on a 0/1
+treatment with year effects, standard errors clustered by state, variance-weighted and reweighted to equal weights per
+event), and their Stata example for non-absorbing treatment for the clean-control windows, since a country can be
+sanctioned repeatedly. A sanctioned country counts if it had no new US case in the three years before $t$ and none in
+$t+1..t+h$; a control has none in $t-3..t+h$. Unlike the base specification, the reference year is $t-1$ and past
+deaths are not controlled for. I report two outcomes, log deaths and conflict incidence (0/1).
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.95\textwidth]{fig47_lpdid_dgjt.png}
+\caption{LP-DiD for new US sanctions. Top: log deaths; bottom: conflict incidence. Bands: 95\,\% intervals of the
+3-year window (variance-weighted and reweighted overlap); crosses: 5-year window.}
+\label{fig:lpdid}
+\end{figure}
+
+\begin{table}[H]
+\centering\small
+\caption{LP-DiD, in conflict in $t-1$, variance-weighted, 3-year window}
+\label{tab:lpdid}
+\begin{threeparttable}
+\begin{tabular}{@{}lccccccc@{}}
+\toprule
+$h$ & $-5$ & $-4$ & $-2$ & 0 & 1 & 2 & 4 \\
+\midrule
+Log deaths & $-0.50$\sig{***} & $-0.25$\sig{*} & $0.01$ & $-0.05$ & $0.03$ & $-0.23$ & $-0.37$ \\
+& (0.18) & (0.14) & (0.12) & (0.12) & (0.17) & (0.22) & (0.30) \\
+Conflict incidence & $0.07$ & $0.03$ & $0.09$\sig{*} & $0.05$ & $0.13$\sig{**} & $0.12$\sig{*} & $0.09$ \\
+& (0.08) & (0.07) & (0.05) & (0.05) & (0.05) & (0.07) & (0.08) \\
+Sanctioned events & 38 & 45 & 64 & 75 & 59 & 46 & 30 \\
+\bottomrule
+\end{tabular}
+\begin{tablenotes}\footnotesize
+\item Reference year $h=-1$. Stars: \sig{*}~$p<0.1$, \sig{**}~$p<0.05$, \sig{***}~$p<0.01$; at the 5\,\% level
+(the figure's bands) only deaths at $h=-5$ and incidence at $h=1$ differ from zero. Equal weights give the same
+numbers to two decimals; the 5-year window gives $-0.37$ to $-0.41$ for deaths at $h=2..4$.
+\end{tablenotes}
+\end{threeparttable}
+\end{table}
 
 \begin{itemize}[leftmargin=*]
-\item \textbf{Supported:} in countries already at war, a new US sanction is followed by a short-lived fall in conflict
-  deaths of about a third, peaking two years later. It is not explained by pre-trends, peace processes, influential
-  wars, specification choices or chance, and the regression, weighting and covariate-matching designs agree on it;
-  propensity-score matching gives the same sign but is too imprecise to confirm it on its own.
-\item \textbf{Not supported:} that sanctions end wars, that the effect lasts, or that it is general (outside wars it is
-  small and fragile). It rests on about 85 US sanction-years in about 46 countries at war.
-\item \textbf{Not causal yet.} Every design conditions on observed history (selection on observables). Country
-  fixed effects remove stable differences, not time-varying ones such as a war's turning point or US information about
-  where a war is heading. Anticipation that leaves no signed agreement remains possible.
-\item \textbf{Two open disagreements} between regression and matching: whether the effect is reversed later, and
-  whether it fades over the decades. A likely reason is weighting. The regression coefficient is a variance-weighted
-  average of heterogeneous effects, with most weight on cells where treatment is closest to a coin flip
-  \citep{angrist1998,angristpischke2009}; the matching estimate is the ATT, with equal weight per sanctioned event.
+\item \textbf{Before the sanction:} in wars, deaths five years earlier were 0.5 log points lower relative to the
+  controls ($p<0.01$); $h=-4$ is significant only at 10\,\%, and the last two years before the sanction are parallel.
+  The US sanctions wars that escalated three to five years earlier and have since stayed high. The base
+  specification holds deaths in $t$, $t-1$, $t-2$ fixed, which covers the plateau but not the earlier escalation.
+\item \textbf{After:} a dip of $-0.23$ to $-0.37$ at $h=2..4$, the same shape as the local projection, not
+  significant; back to zero by $h=6$. Requiring no further US case through $t+h$ leaves 46 events at $h=2$.
+\item \textbf{Incidence:} wars are not more likely to end after a US sanction; at $h=1$ they continue more often
+  ($+13$ pp, $p<0.05$). Fewer deaths in wars that go on, in line with the termination result in
+  Section~\ref{sec:peace}.
 \end{itemize}
 
-\section{Next steps}
-\begin{enumerate}[leftmargin=*]
-\item \textbf{Weights:} compute each event's implicit regression weight and compare it with the matching weights by
-  decade and country; optionally a coarsened exact-cell matching estimator with explicit ATT weights. Then state the
-  estimand of each design in the write-up.
-\item \textbf{Mechanism:} which violence falls --- state-based fighting, non-state violence, or one-sided violence
-  against civilians.
-\item \textbf{Unobserved confounding:} a sensitivity analysis \citep{cinelli2020}: how strong would a confounder have
-  to be, relative to past violence, to explain the effect away? Longer term: within-year timing with monthly data and
-  announcement dates.
-\item \textbf{Decision for the meeting:} which sample is the headline --- countries at war (robust) with all
-  state-years reported alongside, or the reverse.
-\end{enumerate}
+\section{Where this leaves the project}
+\label{sec:final}
+
+\begin{itemize}[leftmargin=*]
+\item \textbf{Consistent:} for US sanctions on countries at war, every design --- local projection, doubly robust
+  weighting, covariate matching, propensity-score matching in four versions, LP-DiD --- gives a negative estimate two
+  to four years after the sanction, of $-0.07$ to $-0.4$ log points, fading by $h=5$--6 (the panel VAR, estimated
+  on all state-years only, agrees there).
+  The effect is specific to the US; other senders show little.
+\item \textbf{Significant only with adjustment for past violence:} the local projection, doubly robust weighting
+  and covariate matching on violence. Designs that need a comparable unsanctioned country in the same year keep
+  30--75 events and lose significance.
+\item \textbf{Not identified:} the US sanctions wars after an escalation, and at the same time as wars are at a high
+  level. With annual data, a post-sanction decline cannot be separated from wars that would have come down anyway.
+  Selection on observables is the assumption throughout, and the LP-DiD's pre-period shows it is not innocuous.
+\item \textbf{Not found:} that sanctions end wars, that the effect lasts, or a general effect across senders or
+  outside wars.
+\end{itemize}
 
 \bibliographystyle{plainnat}
 \bibliography{../../references,../2026-11-09/report_refs,report_refs}
